@@ -7,5 +7,6 @@
   "author": "Manuel Lorenz",
   "email": "manuellorenz549@gmail.com",
   "postsPerDay": 2,
-  "maxPostsOnIndex": 30
+  "maxPostsOnIndex": 30,
+  "autopush": true
 }

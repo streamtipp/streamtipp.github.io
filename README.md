@@ -90,13 +90,54 @@ braucht der Workflow keinen API-Key und bleibt kostenlos.
 3. `baseUrl` in `config/site.json` auf die Pages-URL setzen
 4. Nach jedem `npm run daily` committen und pushen
 
-## Taeglich automatisch starten
+## Automatischer Betrieb
 
-Windows, Aufgabenplanung:
+Einmal einrichten, danach laeuft alles von selbst, sobald der PC an ist:
 
 ```powershell
-schtasks /create /tn "contentbot" /tr "cmd /c cd /d C:\Users\manue\Desktop\filmdate\contentbot && npm run daily" /sc daily /st 07:00
+powershell -ExecutionPolicy Bypass -File scripts\aufgabe-einrichten.ps1
 ```
+
+Legt eine Aufgabe in der Windows-Aufgabenplanung an, die taeglich um 08:00
+`npm run autopilot` startet. War der PC zu der Zeit aus, wird der Lauf
+nachgeholt. Andere Uhrzeit mit `-Zeit 19:30`, entfernen mit `-Entfernen`.
+
+Ein Lauf macht der Reihe nach:
+
+1. Messdaten einlesen, falls ein neuer CSV-Export in `data/` liegt
+2. Gewichte fuer Artikelformen und Quellen neu berechnen
+3. Artikel schreiben und Seite bauen
+4. montags zusaetzlich den Wochenrueckblick nach `reports/`
+5. committen und pushen, wenn `autopush` in `config/site.json` auf `true` steht
+
+Protokolle landen in `logs/`, ein Fehler in einem Schritt stoppt die anderen
+nicht. Probelauf ohne Veroeffentlichung:
+
+```bash
+npm run autopilot -- --no-push
+```
+
+## Wie sich der Bot verbessert
+
+Der Bot optimiert gegen gemessene Klicks, nicht gegen Vermutungen. Die Daten
+kommen aus der Google Search Console, weil sie bei Google entstehen und nicht
+im Browser des Lesers. Dadurch braucht die Seite kein Analyse-Skript, keinen
+Cookie-Banner und keine Einwilligung.
+
+So kommen die Daten ins Projekt:
+
+1. Search Console oeffnen, Property fuer die Adresse anlegen und bestaetigen
+2. Einige Tage warten, bis Impressionen auflaufen
+3. Unter Leistung, Seiten auf Exportieren klicken
+4. Die CSV-Datei nach `data/` legen
+
+Ab dann rechnet jeder Lauf die Gewichte neu. Zwei Sicherungen verhindern
+Ueberreaktion: Unter 10 gemessenen Beitraegen und 20 Klicks bleibt alles wie
+konfiguriert, und der Mittelwert jeder Gruppe wird in Richtung des
+Gesamtmittels geschrumpft. Ein einzelner Glueckstreffer verschiebt damit wenig.
+
+Der Wochenrueckblick in `reports/` schlaegt konkrete Aenderungen vor. Umsetzen
+musst du sie selbst. Der Bot aendert seinen eigenen Code nicht.
 
 ## Struktur
 

@@ -11,6 +11,8 @@ import { writeArticle } from './write.mjs';
 import { build } from './build.mjs';
 import { reportPreflight } from './preflight.mjs';
 import { detectProvider } from './llm.mjs';
+import { refreshFromExports } from './performance.mjs';
+import { learn } from './learn.mjs';
 import { loadConfig, loadState, saveState, log } from './util.mjs';
 
 function arg(name, fallback) {
@@ -33,6 +35,11 @@ async function main() {
   }
 
   log('start', `Provider: ${detectProvider()}, Ziel: ${count} Artikel`);
+
+  // Messen und lernen vor dem Schreiben, damit dieser Lauf schon die neuen
+  // Gewichte nutzt. Beides kostet keinen Modellaufruf.
+  refreshFromExports();
+  learn();
 
   const topics = await discover(count);
   if (!topics.length) {

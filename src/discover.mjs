@@ -6,6 +6,7 @@
 // gekuerzt und spaeter im Prompt klar als Daten markiert - nie als Anweisung.
 
 import { loadConfig, loadState, log, slugify } from './util.mjs';
+import { effectiveFormats, effectiveSources } from './learn.mjs';
 
 const FETCH_TIMEOUT_MS = 8000;
 const MAX_TITLE_LEN = 120;
@@ -68,16 +69,21 @@ function pickFormat(formats) {
 
 export async function discover(count) {
   const niche = loadConfig('niche.json');
-  const sources = loadConfig('sources.json');
+  const sources = effectiveSources();
+  const formats = effectiveFormats();
   const state = loadState();
   const used = new Set(state.usedTopics || []);
 
   const fromFeeds = [];
-  for (const source of sources.rss) {
+  for (const source of sources) {
     try {
       const titles = extractTitles(await fetchFeed(source));
-      log('discover', `${source.name}: ${titles.length} Eintraege`);
-      for (const t of titles) fromFeeds.push({ hook: t, origin: source.name });
+      log('discover', `${source.name}: ${titles.length} Eintraege (Gewicht ${source.weight || 1})`);
+      // Gewicht wirkt hier: Eintraege einer starken Quelle kommen mehrfach in
+      // den Topf und werden dadurch haeufiger gezogen.
+      for (let i = 0; i < (source.weight || 1); i++) {
+        for (const t of titles) fromFeeds.push({ hook: t, origin: source.name });
+      }
     } catch (err) {
       log('discover', `${source.name} nicht erreichbar (${err.message}) - wird uebersprungen`);
     }
@@ -93,7 +99,7 @@ export async function discover(count) {
     const key = slugify(cand.hook);
     if (!key || used.has(key)) continue;
     used.add(key);
-    chosen.push({ ...cand, key, format: pickFormat(niche.formats) });
+    chosen.push({ ...cand, key, format: pickFormat(formats) });
     if (chosen.length >= count) break;
   }
 
