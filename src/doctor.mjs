@@ -2,7 +2,7 @@
 
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-import { detectProvider } from './llm.mjs';
+import { detectProvider, claudeBinaer } from './llm.mjs';
 import { paths, loadConfig } from './util.mjs';
 
 const ok = (m) => process.stdout.write(`  ok    ${m}\n`);
@@ -15,15 +15,17 @@ const provider = detectProvider();
 process.stdout.write(`\nModellzugang (aktiv: ${provider})\n`);
 
 if (provider === 'claude-cli') {
-  const bin = process.env.CLAUDE_BIN || 'claude';
+  const bin = claudeBinaer();
   try {
     const v = execSync(`"${bin}" --version`, {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
     ok(`Claude-CLI: ${v}`);
+    ok(`Pfad: ${bin}`);
   } catch {
-    bad('Claude-CLI nicht aufrufbar. Installieren: npm install -g @anthropic-ai/claude-code');
+    bad(`Claude-CLI nicht aufrufbar unter "${bin}".`);
+    bad('Installieren: npm install -g @anthropic-ai/claude-code');
   }
 } else {
   if (process.env.ANTHROPIC_API_KEY) ok('ANTHROPIC_API_KEY gesetzt');

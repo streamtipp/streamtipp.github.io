@@ -9,8 +9,42 @@
 // ueber den Anbieter wissen muss.
 
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const MODEL = 'claude-opus-5';
+
+// Den Pfad zur CLI selbst aufloesen, statt auf PATH zu vertrauen.
+//
+// Grund: Prozesse, die nicht aus einer interaktiven Sitzung stammen, sehen den
+// npm-Ordner oft nicht. Das betrifft die Desktop-App, die ueber wscript
+// startet, und die Windows-Aufgabenplanung. Beide scheiterten sonst mit
+// "claude ist kein Befehl", obwohl die CLI installiert ist.
+
+let zwischenspeicher = null;
+
+export function claudeBinaer() {
+  if (zwischenspeicher) return zwischenspeicher;
+  if (process.env.CLAUDE_BIN) return (zwischenspeicher = process.env.CLAUDE_BIN);
+
+  const kandidaten = [];
+  const füge = (basis, ...teile) => { if (basis) kandidaten.push(path.join(basis, ...teile)); };
+
+  füge(process.env.APPDATA, 'npm', 'claude.cmd');
+  füge(process.env.LOCALAPPDATA, 'npm', 'claude.cmd');
+  füge(process.env.ProgramFiles, 'nodejs', 'claude.cmd');
+  füge(process.env.HOME || process.env.USERPROFILE, '.local', 'bin', 'claude');
+  füge(process.env.HOME || process.env.USERPROFILE, '.npm-global', 'bin', 'claude');
+
+  for (const k of kandidaten) {
+    try {
+      if (fs.existsSync(k)) return (zwischenspeicher = k);
+    } catch { /* naechster Kandidat */ }
+  }
+
+  // Letzter Versuch: vielleicht steht sie doch im PATH.
+  return (zwischenspeicher = 'claude');
+}
 
 // Der kostenpflichtige Weg wird nie von allein gewaehlt. Ein vorhandener
 // ANTHROPIC_API_KEY reicht ausdruecklich nicht: nur wer CONTENTBOT_LLM
@@ -105,7 +139,7 @@ export function schaetzung(historie, anzahl) {
 }
 
 function viaCli(prompt) {
-  const bin = process.env.CLAUDE_BIN || 'claude';
+  const bin = claudeBinaer();
 
   // Unter Windows ist "claude" eine .cmd, die nur ueber die Shell startet.
   // Deshalb ein fertiger Kommandostring statt getrennter Argumente: so
@@ -137,6 +171,13 @@ function viaCli(prompt) {
         return reject(new Error(
           'Claude-CLI ist nicht angemeldet. Einmalig im Terminal "claude" starten, ' +
           'dort /login eingeben und den Browser-Login abschliessen. Danach laeuft die Pipeline.'
+        ));
+      }
+      if (/not recognized|nicht gefunden|command not found/i.test(detail)) {
+        return reject(new Error(
+          `Claude-CLI nicht aufrufbar unter "${bin}". Installieren mit ` +
+          'npm install -g @anthropic-ai/claude-code, oder den vollen Pfad in der ' +
+          'Umgebungsvariablen CLAUDE_BIN hinterlegen.'
         ));
       }
       if (code !== 0) return reject(new Error(`Claude-CLI Exit ${code}: ${detail || 'ohne Meldung'}`));
