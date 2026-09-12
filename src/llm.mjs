@@ -53,6 +53,57 @@ export function verbrauchText() {
   );
 }
 
+// Verbrauch eines Laufs an die Historie anhaengen. Daraus schaetzt die App
+// spaeter, was ein weiterer Artikel kosten wird, statt mit einem fest
+// verdrahteten Wert zu raten.
+
+export async function verbrauchSichern(artikel) {
+  if (!verbrauch.aufrufe) return;
+
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { paths } = await import('./util.mjs');
+  const datei = path.join(paths.data, 'verbrauch.json');
+
+  let historie = [];
+  try {
+    historie = JSON.parse(fs.readFileSync(datei, 'utf8'));
+    if (!Array.isArray(historie)) historie = [];
+  } catch { /* erste Aufzeichnung */ }
+
+  historie.push({
+    zeit: new Date().toISOString(),
+    artikel,
+    aufrufe: verbrauch.aufrufe,
+    outputTokens: verbrauch.outputTokens,
+    cacheReadTokens: verbrauch.cacheReadTokens,
+    kostenGegenwert: Number(verbrauch.kostenGegenwert.toFixed(4)),
+  });
+
+  fs.mkdirSync(paths.data, { recursive: true });
+  fs.writeFileSync(datei, JSON.stringify(historie.slice(-500), null, 2) + '\n');
+}
+
+// Schaetzung aus der Historie. Ohne Historie die gemessenen Startwerte.
+export function schaetzung(historie, anzahl) {
+  const brauchbar = (historie || []).filter((e) => e.artikel > 0);
+  const artikel = brauchbar.reduce((s, e) => s + e.artikel, 0);
+
+  const proArtikel = artikel >= 3
+    ? {
+        kosten: brauchbar.reduce((s, e) => s + e.kostenGegenwert, 0) / artikel,
+        tokens: brauchbar.reduce((s, e) => s + e.outputTokens, 0) / artikel,
+      }
+    : { kosten: 0.085, tokens: 4200 };
+
+  return {
+    kosten: proArtikel.kosten * anzahl,
+    tokens: Math.round(proArtikel.tokens * anzahl),
+    proArtikel,
+    basis: artikel >= 3 ? `${artikel} gemessene Artikel` : 'Startwerte, noch zu wenig gemessen',
+  };
+}
+
 function viaCli(prompt) {
   const bin = process.env.CLAUDE_BIN || 'claude';
 

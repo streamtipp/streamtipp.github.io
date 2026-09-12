@@ -138,7 +138,8 @@ async function main() {
     journal.push(`[halt] Nicht veroeffentlicht: ${grund}`);
   }
 
-  const { verbrauchText } = await import('./llm.mjs');
+  const { verbrauchText, verbrauchSichern } = await import('./llm.mjs');
+  await verbrauchSichern(written || 0);
   journal.push(`[verbr] ${verbrauchText()}`);
   journal.push(`=== Ende, Dauer ${Math.round((Date.now() - started.getTime()) / 1000)}s ===\n`);
   writeLog(journal);

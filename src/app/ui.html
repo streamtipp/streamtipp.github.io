@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Streamtipp Steuerung</title>
+<style>
+:root{
+  --bg:#14121a; --karte:#1d1a25; --karte2:#241f2e; --linie:#2e2839;
+  --text:#ece7f2; --gedaempft:#9c93a9; --akzent:#f092ae; --akzent2:#8fd3c7;
+  --warn:#f3c482; --schlecht:#e8798f; --gut:#7fd1a8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.55 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:1.5rem 1.5rem 3rem}
+
+header{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;justify-content:space-between;
+  padding-bottom:1.1rem;border-bottom:1px solid var(--linie);margin-bottom:1.5rem}
+header h1{font-size:1.25rem;margin:0;letter-spacing:-.01em}
+header .rechts{display:flex;gap:.6rem;align-items:center;font-size:.85rem;color:var(--gedaempft)}
+.punkt{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:.4rem}
+.punkt.an{background:var(--gut)} .punkt.aus{background:var(--schlecht)}
+a{color:var(--akzent)}
+
+.gitter{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem}
+.karte{background:var(--karte);border:1px solid var(--linie);border-radius:12px;padding:1.1rem 1.2rem}
+.karte h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;color:var(--gedaempft);
+  margin:0 0 .9rem;font-weight:600}
+
+.zahl{font-size:2rem;font-weight:600;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.zahl small{font-size:.85rem;font-weight:400;color:var(--gedaempft);margin-left:.35rem}
+.unter{color:var(--gedaempft);font-size:.85rem;margin-top:.3rem}
+
+.reihe{display:flex;justify-content:space-between;gap:1rem;padding:.42rem 0;border-bottom:1px solid var(--linie);font-size:.9rem}
+.reihe:last-child{border-bottom:0}
+.reihe span:last-child{color:var(--gedaempft);font-variant-numeric:tabular-nums;white-space:nowrap}
+.reihe.stark span:last-child{color:var(--text);font-weight:600}
+
+/* Aktionskarte */
+.aktion{grid-column:1/-1;background:linear-gradient(180deg,var(--karte2),var(--karte))}
+.steuerung{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center}
+button{font:inherit;font-weight:600;color:#1b1524;background:var(--akzent);border:0;
+  border-radius:9px;padding:.62rem 1.15rem;cursor:pointer}
+button:hover{filter:brightness(1.08)}
+button:disabled{opacity:.45;cursor:not-allowed;filter:none}
+button.zweit{background:var(--karte2);color:var(--text);border:1px solid var(--linie)}
+input[type=number]{font:inherit;width:5.5rem;padding:.58rem .7rem;border-radius:9px;
+  background:var(--bg);border:1px solid var(--linie);color:var(--text);text-align:center}
+input[type=number]:focus{outline:2px solid var(--akzent);outline-offset:1px}
+
+.schaetzung{margin-top:1rem;padding:.85rem 1rem;background:var(--bg);border:1px solid var(--linie);
+  border-radius:10px;display:flex;flex-wrap:wrap;gap:1.6rem}
+.schaetzung div{min-width:7rem}
+.schaetzung .wert{font-size:1.15rem;font-weight:600;font-variant-numeric:tabular-nums}
+.schaetzung .titel{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--gedaempft)}
+.hinweis{font-size:.82rem;color:var(--gedaempft);margin-top:.7rem}
+
+#protokoll{margin-top:1rem;background:#100e15;border:1px solid var(--linie);border-radius:10px;
+  padding:.8rem 1rem;max-height:15rem;overflow-y:auto;font-family:"Cascadia Mono",Consolas,monospace;
+  font-size:.8rem;line-height:1.6;white-space:pre-wrap;display:none}
+#protokoll.sichtbar{display:block}
+#protokoll .fehler{color:var(--schlecht)}
+#protokoll .gut{color:var(--gut)}
+
+.leer{color:var(--gedaempft);font-size:.88rem}
+.markierung{display:inline-block;padding:.08rem .5rem;border-radius:999px;background:var(--karte2);
+  font-size:.75rem;color:var(--gedaempft);margin-left:.4rem}
+.balken{height:6px;border-radius:3px;background:var(--karte2);overflow:hidden;margin-top:.35rem}
+.balken i{display:block;height:100%;background:var(--akzent)}
+footer{margin-top:1.6rem;color:var(--gedaempft);font-size:.8rem;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1 id="titel">Steuerung</h1>
+  <div class="rechts">
+    <span id="livestatus"><span class="punkt aus"></span>pruefe ...</span>
+    <a id="seitenlink" href="#" target="_blank">Seite oeffnen</a>
+    <button class="zweit" id="neuladen" style="padding:.35rem .8rem;font-size:.82rem">Aktualisieren</button>
+  </div>
+</header>
+
+<div class="gitter">
+
+  <section class="karte aktion">
+    <h2>Beitraege erzeugen</h2>
+    <div class="steuerung">
+      <button id="plus1">+1 Beitrag</button>
+      <input type="number" id="anzahl" min="1" max="50" value="5">
+      <button id="starten">Diese Anzahl erzeugen</button>
+      <button class="zweit" id="plus5">+5</button>
+      <button class="zweit" id="plus10">+10</button>
+    </div>
+
+    <div class="schaetzung">
+      <div>
+        <div class="titel">Verbrauch geschaetzt</div>
+        <div class="wert" id="s_kosten">-</div>
+      </div>
+      <div>
+        <div class="titel">Ausgabe-Token</div>
+        <div class="wert" id="s_tokens">-</div>
+      </div>
+      <div>
+        <div class="titel">Dauer etwa</div>
+        <div class="wert" id="s_dauer">-</div>
+      </div>
+      <div>
+        <div class="titel">Je Beitrag</div>
+        <div class="wert" id="s_je">-</div>
+      </div>
+    </div>
+    <p class="hinweis" id="s_basis"></p>
+    <div id="protokoll"></div>
+  </section>
+
+  <section class="karte">
+    <h2>Bestand</h2>
+    <div class="zahl" id="a_gesamt">-<small>Beitraege</small></div>
+    <div class="unter" id="a_woerter"></div>
+    <div style="margin-top:.9rem" id="a_kategorien"></div>
+  </section>
+
+  <section class="karte">
+    <h2>Verbrauch gesamt</h2>
+    <div class="zahl" id="v_gesamt">-<small>USD Gegenwert</small></div>
+    <div class="unter" id="v_unter"></div>
+    <div style="margin-top:.9rem" id="v_letzte"></div>
+  </section>
+
+  <section class="karte">
+    <h2>Besucher und Klicks</h2>
+    <div id="m_inhalt"></div>
+  </section>
+
+  <section class="karte">
+    <h2>Themenplan</h2>
+    <div id="p_inhalt"></div>
+  </section>
+
+  <section class="karte">
+    <h2>Automatik</h2>
+    <div id="t_inhalt"></div>
+  </section>
+
+  <section class="karte">
+    <h2>Zuletzt geschrieben</h2>
+    <div id="n_inhalt"></div>
+  </section>
+
+</div>
+
+<footer id="fuss"></footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const zahl = (n, s = 0) => Number(n || 0).toLocaleString('de-DE', { minimumFractionDigits: s, maximumFractionDigits: s });
+
+function reihe(links, rechts, stark) {
+  return '<div class="reihe' + (stark ? ' stark' : '') + '"><span>' + links + '</span><span>' + rechts + '</span></div>';
+}
+
+async function schaetzen() {
+  const n = Math.max(1, Math.min(50, Number($('anzahl').value) || 1));
+  try {
+    const s = await (await fetch('/api/schaetzung?anzahl=' + n)).json();
+    $('s_kosten').textContent = zahl(s.kosten, 2) + ' USD';
+    $('s_tokens').textContent = zahl(s.tokens);
+    $('s_dauer').textContent = Math.max(1, Math.round(n * 62 / 60)) + ' Min';
+    $('s_je').textContent = zahl(s.proArtikel.kosten, 3) + ' USD';
+    $('s_basis').textContent = 'Grundlage der Schaetzung: ' + s.basis
+      + '. Der Betrag wird nicht abgerechnet, er zeigt nur, wie stark der Lauf ins Kontingent deines Abos greift.';
+  } catch { $('s_basis').textContent = 'Schaetzung nicht verfuegbar.'; }
+}
+
+function protokollZeile(text) {
+  const p = $('protokoll');
+  p.classList.add('sichtbar');
+  const z = document.createElement('div');
+  if (/fehlgeschlagen|fehler|abbruch|block/i.test(text)) z.className = 'fehler';
+  else if (/\[ok\]|\[done\]|\[write\]/i.test(text)) z.className = 'gut';
+  z.textContent = text;
+  p.appendChild(z);
+  p.scrollTop = p.scrollHeight;
+}
+
+let laeuft = false;
+function starten(n) {
+  if (laeuft) return;
+  laeuft = true;
+  for (const b of document.querySelectorAll('button')) b.disabled = true;
+  $('protokoll').innerHTML = '';
+  protokollZeile('Starte ' + n + ' Beitrag' + (n === 1 ? '' : 'e') + ' ...');
+
+  const q = new EventSource('/api/erzeugen?anzahl=' + n);
+  q.addEventListener('zeile', (e) => protokollZeile(JSON.parse(e.data).text));
+  q.addEventListener('fertig', (e) => {
+    const code = JSON.parse(e.data).code;
+    protokollZeile(code === 0 ? 'Fertig.' : 'Beendet mit Code ' + code + '.');
+    q.close();
+    laeuft = false;
+    for (const b of document.querySelectorAll('button')) b.disabled = false;
+    laden();
+    schaetzen();
+  });
+  q.onerror = () => {
+    protokollZeile('Verbindung unterbrochen.');
+    q.close();
+    laeuft = false;
+    for (const b of document.querySelectorAll('button')) b.disabled = false;
+  };
+}
+
+async function laden() {
+  let d;
+  try { d = await (await fetch('/api/status')).json(); }
+  catch { $('fuss').textContent = 'Server nicht erreichbar.'; return; }
+
+  $('titel').textContent = d.site.titel + ' Steuerung';
+  $('seitenlink').href = d.site.adresse;
+  $('livestatus').innerHTML = d.live.erreichbar
+    ? '<span class="punkt an"></span>online, ' + d.live.adressen + ' Adressen'
+    : '<span class="punkt aus"></span>nicht erreichbar';
+
+  // Bestand
+  $('a_gesamt').innerHTML = zahl(d.artikel.gesamt) + '<small>Beitraege</small>';
+  $('a_woerter').textContent = zahl(d.artikel.woerterGesamt) + ' Woerter, Schnitt ' + zahl(d.artikel.woerterSchnitt)
+    + (d.artikel.heute ? ' | heute ' + d.artikel.heute + ' neu' : '');
+  const max = Math.max(1, ...d.artikel.nachKategorie.map((k) => k.anzahl));
+  $('a_kategorien').innerHTML = d.artikel.nachKategorie.map((k) =>
+    '<div class="reihe"><span>' + k.label + '</span><span>' + k.anzahl + '</span></div>'
+    + '<div class="balken"><i style="width:' + Math.round(k.anzahl / max * 100) + '%"></i></div>').join('');
+
+  // Verbrauch
+  $('v_gesamt').innerHTML = zahl(d.verbrauch.gesamtKosten, 2) + '<small>USD Gegenwert</small>';
+  $('v_unter').textContent = d.verbrauch.laeufe + ' Laeufe, ' + zahl(d.verbrauch.artikelGesamt) + ' Beitraege, '
+    + zahl(d.verbrauch.gesamtTokens) + ' Token | heute ' + zahl(d.verbrauch.heute, 2) + ' USD';
+  $('v_letzte').innerHTML = d.verbrauch.letzte.length
+    ? d.verbrauch.letzte.map((e) => reihe(
+        new Date(e.zeit).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+        + '<span class="markierung">' + e.artikel + '</span>',
+        zahl(e.kostenGegenwert, 2) + ' USD')).join('')
+    : '<p class="leer">Noch keine Laeufe aufgezeichnet.</p>';
+
+  // Messung
+  $('m_inhalt').innerHTML = d.messung.vorhanden
+    ? '<div class="zahl">' + zahl(d.messung.klicks) + '<small>Klicks</small></div>'
+      + '<div class="unter">' + zahl(d.messung.impressionen) + ' Impressionen, '
+      + d.messung.artikelMitDaten + ' Beitraege mit Daten</div>'
+      + '<div style="margin-top:.9rem">' + d.messung.top.map((t) =>
+          reihe(t.slug.slice(0, 34), t.klicks + ' Kl.')).join('') + '</div>'
+    : '<p class="leer">Noch keine Daten. Die Search Console sammelt erst ein paar Tage. '
+      + 'Danach den CSV-Export unter Leistung, Seiten herunterladen und in den Ordner data legen. '
+      + 'Ab zehn gemessenen Beitraegen und zwanzig Klicks gewichtet der Bot die Artikelformen selbst.</p>';
+
+  // Themenplan
+  if (d.plan) {
+    const p = d.plan;
+    $('p_inhalt').innerHTML =
+      '<div class="zahl">' + p.evergreenOffen + '<small>von ' + p.evergreenGesamt + ' offen</small></div>'
+      + '<div class="unter">zeitlose Themen, reichen fuer ' + Math.ceil(p.evergreenOffen / Math.max(1, d.site.proTag)) + ' Tage</div>'
+      + '<div style="margin-top:.9rem">'
+      + (p.saisonalAktiv.length
+          ? p.saisonalAktiv.map((s) => reihe(s.titel.slice(0, 30), s.anlass + ', bis ' + s.bis, true)).join('')
+          : '<div class="reihe"><span>Aktuell kein Saisonthema</span><span></span></div>')
+      + (p.naechsteSaison.length
+          ? p.naechsteSaison.map((s) => reihe('<span style="opacity:.6">' + s.anlass + '</span>', 'ab ' + s.ab)).join('')
+          : '')
+      + '</div>';
+  } else $('p_inhalt').innerHTML = '<p class="leer">Kein Themenplan gefunden.</p>';
+
+  // Automatik
+  const t = d.aufgabe;
+  $('t_inhalt').innerHTML = t.eingerichtet
+    ? reihe('Status', t.status || 'unbekannt', true)
+      + reihe('Naechster Lauf', t.naechster || '-')
+      + reihe('Letzter Lauf', t.letzter || '-')
+      + reihe('Beitraege pro Tag', d.site.proTag)
+      + reihe('Automatisch pushen', d.site.autopush ? 'an' : 'aus')
+      + reihe('Affiliate-Links', d.site.affiliateAktiv ? 'an' : 'aus')
+    : '<p class="leer">Keine geplante Aufgabe gefunden. Einrichten mit dem Skript in scripts.</p>';
+
+  // Neueste
+  $('n_inhalt').innerHTML = d.artikel.neueste.length
+    ? d.artikel.neueste.map((n) =>
+        '<div class="reihe"><span><a href="' + d.site.adresse + '/' + n.slug + '/" target="_blank">'
+        + n.titel.slice(0, 40) + '</a></span><span>' + n.datum.slice(5) + '</span></div>').join('')
+    : '<p class="leer">Noch nichts geschrieben.</p>';
+
+  $('fuss').textContent = 'Stand ' + new Date().toLocaleTimeString('de-DE')
+    + (d.gewichte ? ' | gelernte Gewichte vom ' + new Date(d.gewichte.updatedAt).toLocaleDateString('de-DE') : ' | noch keine gelernten Gewichte');
+}
+
+$('plus1').onclick = () => starten(1);
+$('plus5').onclick = () => { $('anzahl').value = 5; schaetzen(); starten(5); };
+$('plus10').onclick = () => { $('anzahl').value = 10; schaetzen(); starten(10); };
+$('starten').onclick = () => starten(Math.max(1, Math.min(50, Number($('anzahl').value) || 1)));
+$('anzahl').oninput = schaetzen;
+$('neuladen').onclick = () => { laden(); schaetzen(); };
+
+laden();
+schaetzen();
+setInterval(() => { if (!laeuft) laden(); }, 60000);
+</script>
+</body>
+</html>

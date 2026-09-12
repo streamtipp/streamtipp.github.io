@@ -90,6 +90,33 @@ braucht der Workflow keinen API-Key und bleibt kostenlos.
 3. `baseUrl` in `config/site.json` auf die Pages-URL setzen
 4. Nach jedem `npm run daily` committen und pushen
 
+## Steuerung als Desktop-Programm
+
+Doppelklick auf **Streamtipp Steuerung** auf dem Desktop. Es oeffnet sich ein
+eigenes Fenster ohne Adressleiste und ohne Tabs.
+
+Darin:
+
+- **+1 Beitrag**, **+5**, **+10** oder eine eigene Zahl bis 50
+- Vor dem Start steht da, was der Lauf verbrauchen wird: Gegenwert in USD,
+  Ausgabe-Token und ungefaehre Dauer. Die Schaetzung kommt aus dem tatsaechlich
+  gemessenen Verbrauch der letzten Laeufe, nicht aus einem festen Wert
+- Waehrend des Laufs laeuft das Protokoll Zeile fuer Zeile mit
+- Bestand nach Kategorie, Woerter, Verbrauchshistorie
+- Klicks und Impressionen, sobald ein Search-Console-Export in `data/` liegt
+- Stand des Themenplans samt aktivem Saisonthema
+- Status der geplanten Aufgabe mit naechstem Lauf
+
+Der Server bindet nur an 127.0.0.1, von aussen ist nichts erreichbar. Ohne
+Desktop-Verknuepfung geht es auch so:
+
+```bash
+npm run app
+```
+
+Bewusst kein Electron: Das waere ein Download von rund 200 MB und ein Berg
+Abhaengigkeiten fuer ein Fenster, das Edge auf jedem Windows 11 ohnehin liefert.
+
 ## Automatischer Betrieb
 
 Einmal einrichten, danach laeuft alles von selbst, sobald der PC an ist:

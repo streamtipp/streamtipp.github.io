@@ -15,6 +15,7 @@
     "review": "node -e \"import('./src/review.mjs').then(m => m.review())\"",
     "migrate": "node src/migrate.mjs",
     "indexnow": "node src/indexnow.mjs",
+    "app": "node src/app/server.mjs",
     "autopilot": "node src/autopilot.mjs",
     "preflight": "node -e \"import('./src/preflight.mjs').then(m => process.exit(m.reportPreflight() ? 0 : 1))\"",
     "doctor": "node src/doctor.mjs",
