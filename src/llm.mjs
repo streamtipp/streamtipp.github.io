@@ -12,9 +12,14 @@ import { spawn } from 'node:child_process';
 
 const MODEL = 'claude-opus-5';
 
+// Der kostenpflichtige Weg wird nie von allein gewaehlt. Ein vorhandener
+// ANTHROPIC_API_KEY reicht ausdruecklich nicht: nur wer CONTENTBOT_LLM
+// bewusst auf "anthropic" setzt, erzeugt eine Rechnung. Sonst laeuft alles
+// ueber die CLI und damit im bestehenden Abo.
+
 export function detectProvider() {
-  if (process.env.CONTENTBOT_LLM) return process.env.CONTENTBOT_LLM;
-  if (process.env.ANTHROPIC_API_KEY) return 'anthropic';
+  const explicit = process.env.CONTENTBOT_LLM;
+  if (explicit) return explicit;
   return 'claude-cli';
 }
 
@@ -115,6 +120,11 @@ ${filler.slice(9).join(' ')}`);
 // --- Weg 2: Anthropic SDK ---------------------------------------------------
 
 async function viaSdk(prompt, maxTokens) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('CONTENTBOT_LLM=anthropic gesetzt, aber kein ANTHROPIC_API_KEY vorhanden.');
+  }
+  process.stdout.write('[llm]   Achtung: kostenpflichtiger API-Weg aktiv, dieser Lauf wird abgerechnet.\n');
+
   let Anthropic;
   try {
     ({ default: Anthropic } = await import('@anthropic-ai/sdk'));
