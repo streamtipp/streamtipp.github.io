@@ -1,0 +1,11 @@
+Alles in diesem Ordner landet unveraendert im Wurzelverzeichnis der Website.
+
+Gedacht fuer Bestaetigungsdateien von Suchmaschinen:
+  - Google Search Console: googleXXXXXXXXXXXX.html
+  - Bing Webmaster Tools:  BingSiteAuth.xml
+
+Datei hier ablegen, dann "npm run build" und pushen. Danach liegt sie unter
+https://streamtipp.github.io/<dateiname> und die Bestaetigung klappt.
+
+Alternativ geht es ohne Datei ueber config/site.json unter "verification":
+dort den Code aus dem Meta-Tag eintragen, nicht den ganzen Tag.

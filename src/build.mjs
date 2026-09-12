@@ -131,7 +131,7 @@ function layout(site, defs, { title, description, canonical, body, jsonLd, prefi
 <meta property="og:description" content="${escapeHtml(description)}">
 <meta property="og:url" content="${canonical}">
 <meta property="og:type" content="website">
-<style>${CSS}</style>
+${site.verification?.google ? `<meta name="google-site-verification" content="${escapeHtml(site.verification.google)}">\n` : ''}${site.verification?.bing ? `<meta name="msvalidate.01" content="${escapeHtml(site.verification.bing)}">\n` : ''}<style>${CSS}</style>
 ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>` : ''}
 </head>
 <body>
@@ -470,6 +470,25 @@ export function build() {
   // wirklich kontrollieren, bevor es gemeldete Adressen annimmt.
   if (site.indexNowKey) {
     fs.writeFileSync(path.join(paths.dist, `${site.indexNowKey}.txt`), site.indexNowKey);
+  }
+
+  // Alles aus site/static/ landet unveraendert im Wurzelverzeichnis. Dort
+  // gehoeren Bestaetigungsdateien von Suchmaschinen hin, die man herunterlaedt
+  // und nur ablegen muss.
+  const statisch = path.join(paths.site, 'static');
+  const nichtKopieren = new Set(['LIESMICH.txt']);
+  if (fs.existsSync(statisch)) {
+    const kopiert = [];
+    for (const f of fs.readdirSync(statisch)) {
+      // Punktdateien und die Anleitung bleiben im Projekt, sie haben auf der
+      // oeffentlichen Seite nichts verloren.
+      if (f.startsWith('.') || nichtKopieren.has(f)) continue;
+      const quelle = path.join(statisch, f);
+      if (!fs.statSync(quelle).isFile()) continue;
+      fs.copyFileSync(quelle, path.join(paths.dist, f));
+      kopiert.push(f);
+    }
+    if (kopiert.length) log('build', `aus site/static uebernommen: ${kopiert.join(', ')}`);
   }
 
   log('build', `${posts.length} Beitraege, ${defs.length} Kategorien, Suchindex nach dist/`);
