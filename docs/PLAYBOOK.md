@@ -67,23 +67,35 @@ der Seite.
 
 ## Rechtliches, nicht optional
 
-Das ist keine Rechtsberatung. Es sind die Punkte, die sich niemand sparen kann.
+Standort ist Wien, also gilt oesterreichisches Recht. Das ist keine
+Rechtsberatung, sondern die Liste der Punkte, die sich niemand sparen kann.
 
-- **Impressum** nach § 5 DDG mit ladungsfaehiger Anschrift. Ein Postfach reicht
-  nicht. Wer keine Privatadresse veroeffentlichen will, braucht eine
-  ladungsfaehige Geschaeftsadresse.
-- **Datenschutzerklaerung** nach Art. 13 DSGVO, angepasst an die Dienste, die
-  du tatsaechlich einsetzt.
+- **Impressum** nach § 5 E-Commerce-Gesetz mit ladungsfaehiger Anschrift. Ein
+  Postfach reicht nicht. Ein unvollstaendiges Impressum ist eine
+  Verwaltungsuebertretung mit Strafrahmen bis 3.000 Euro.
+- **Offenlegung** nach § 25 Mediengesetz. Zusaetzlich zum Impressum, weil die
+  Seite meinungsbildende Inhalte hat. Dazu gehoert die grundlegende Richtung,
+  also die Blattlinie. Der Strafrahmen liegt hier bis 20.000 Euro.
+- **Datenschutzerklaerung** nach Art. 13 DSGVO. Aufsicht ist die
+  Oesterreichische Datenschutzbehoerde, nicht eine deutsche Landesbehoerde.
 - **Werbekennzeichnung.** Affiliate-Links sind Werbung und muessen erkennbar
   sein, bevor der Leser klickt. Die Pipeline setzt den Hinweis automatisch an
   den Anfang jedes Beitrags mit Links.
-- **Gewerbe.** Affiliate-Einnahmen sind in der Regel gewerblich. Anmeldung beim
-  Gewerbeamt, dann Fragebogen zur steuerlichen Erfassung beim Finanzamt.
-  Die Kleinunternehmerregelung nach § 19 UStG ist am Anfang meist sinnvoll.
+- **Gewerbe.** Einnahmen aus Affiliate-Werbung sind gewerblich. Noetig ist ein
+  freies Gewerbe, etwa Werbeagentur oder Online Content Creator. Keine Pruefung,
+  kein Befaehigungsnachweis. Mit der Anmeldung entsteht automatisch die
+  Mitgliedschaft in der Wirtschaftskammer, dazu kommen Meldungen an SVS und
+  Finanzamt. Die Anmeldung erst machen, wenn tatsaechlich Einnahmen absehbar
+  sind, denn die Kammerumlage laeuft ab dann mit.
+- **Umsatzsteuer.** Die Kleinunternehmerregelung nach § 6 Abs. 1 Z 27 UStG gilt
+  bis 55.000 Euro Bruttoumsatz im Kalenderjahr, mit Toleranz bis 60.500 Euro.
+  Fuer den Anfang ist das die passende Variante.
 - **Steuern.** Einnahmen gehoeren in die Steuererklaerung, auch kleine.
-- **KI-Kennzeichnung.** Es gibt in Deutschland keine allgemeine Pflicht, jeden
-  KI-Text zu kennzeichnen. Der Hinweis im Impressum ist trotzdem fair und
-  kostet nichts.
+- **Keine ODR-Plattform verlinken.** Die EU-Plattform zur Online-Streitbeilegung
+  wurde am 20. Juli 2025 eingestellt. Aeltere Impressum-Vorlagen verlinken sie
+  noch. Der Link gehoert entfernt, nicht ergaenzt.
+- **KI-Kennzeichnung.** Es gibt keine allgemeine Pflicht, jeden KI-Text zu
+  kennzeichnen. Der Hinweis im Impressum ist trotzdem fair und kostet nichts.
 
 Der Preflight blockiert den Deploy, solange Impressum oder Datenschutz noch
 Platzhalter enthalten. Umgehen kannst du ihn, aber dann traegst du das Risiko.
