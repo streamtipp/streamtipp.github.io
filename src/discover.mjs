@@ -25,6 +25,24 @@ async function fetchFeed(source) {
   }
 }
 
+const NAMED = {
+  amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', nbsp: ' ',
+  bdquo: '"', ldquo: '"', rdquo: '"', laquo: '<<', raquo: '>>',
+  sbquo: ',', lsquo: "'", rsquo: "'", ndash: '-', mdash: '-', hellip: '...',
+  auml: 'ä', ouml: 'ö', uuml: 'ü', Auml: 'Ä', Ouml: 'Ö', Uuml: 'Ü', szlig: 'ß',
+};
+
+// Feeds mischen benannte und numerische Entities, teils doppelt kodiert.
+// Zwei Durchlaeufe reichen fuer alles, was in der Praxis vorkommt.
+function decodeEntities(s) {
+  const once = (t) =>
+    t
+      .replace(/&#x([0-9a-f]+);/gi, (_m, hex) => String.fromCodePoint(parseInt(hex, 16)))
+      .replace(/&#(\d+);/g, (_m, dec) => String.fromCodePoint(Number(dec)))
+      .replace(/&([a-z]+);/gi, (m, name) => NAMED[name] ?? m);
+  return once(once(s));
+}
+
 function extractTitles(xml) {
   const titles = [];
   const itemRe = /<(item|entry)\b[\s\S]*?<\/\1>/gi;
@@ -33,14 +51,9 @@ function extractTitles(xml) {
   for (const match of xml.match(itemRe) || []) {
     const t = match.match(titleRe);
     if (!t) continue;
-    const clean = t[1]
-      .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&amp;/g, '&')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
+    const clean = decodeEntities(
+      t[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]+>/g, '')
+    )
       .replace(/\s+/g, ' ')
       .trim();
     if (clean.length > 3) titles.push(clean.slice(0, MAX_TITLE_LEN));
