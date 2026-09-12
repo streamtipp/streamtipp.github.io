@@ -2,7 +2,7 @@
 title: Miniserie oder Spielfilm - was lohnt sich 2026?
 description: Ein Vergleich zwischen Miniserie und Spielfilm bei Stephen-King-Stoffen: Welches Format 2026 mehr bringt und wann sich welches wirklich lohnt.
 tags: [Streaming]
-date: 2026-09-06
+date: 2026-09-03
 slug: miniserie-oder-spielfilm-was-lohnt-sich-2026
 source: Moviepilot News
 format: vergleich

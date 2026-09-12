@@ -2,7 +2,7 @@
 title: 7 Serien für den Abend nach dem Verräter-Finale
 description: Wer nach dem Finale von Die Verräter noch mehr Misstrauen und Strategie sehen will, findet hier sieben passende Serien und Shows.
 tags: [Serien, Streaming]
-date: 2026-09-02
+date: 2026-08-30
 slug: 7-serien-fuer-den-abend-nach-dem-verraeter-finale
 source: Digitalfernsehen
 format: listicle

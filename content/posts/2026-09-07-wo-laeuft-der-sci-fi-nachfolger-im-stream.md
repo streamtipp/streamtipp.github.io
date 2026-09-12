@@ -2,7 +2,7 @@
 title: Wo läuft der Sci-Fi-Nachfolger im Stream?
 description: Eine beliebte Sci-Fi-Serie endet nächstes Jahr – wir ordnen ein, was das für einen möglichen Nachfolger bedeutet und wo man ihn im Blick behält.
 tags: [Serien, Streaming]
-date: 2026-09-10
+date: 2026-09-07
 slug: wo-laeuft-der-sci-fi-nachfolger-im-stream
 source: Serienjunkies
 format: wo-streamen

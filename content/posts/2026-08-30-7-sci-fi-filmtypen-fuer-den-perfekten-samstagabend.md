@@ -2,7 +2,7 @@
 title: 7 Sci-Fi-Filmtypen für den perfekten Samstagabend
 description: Nicht jeder Sci-Fi-Film passt zu einem entspannten Samstagabend – diese sieben Typen schon, je nach Laune und Energielevel.
 tags: [Streaming]
-date: 2026-09-02
+date: 2026-08-30
 slug: 7-sci-fi-filmtypen-fuer-den-perfekten-samstagabend
 source: Moviepilot News
 format: listicle

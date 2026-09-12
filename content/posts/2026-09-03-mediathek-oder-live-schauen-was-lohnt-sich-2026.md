@@ -2,7 +2,7 @@
 title: Mediathek oder Live schauen – was lohnt sich 2026?
 description: ZDF plant eine neue Krimireihe in der Eifel – wir vergleichen, ob sich Warten auf die Mediathek oder Live-Schauen 2026 eher lohnt.
 tags: [Krimi und Thriller, Streaming]
-date: 2026-09-06
+date: 2026-09-03
 slug: mediathek-oder-live-schauen-was-lohnt-sich-2026
 source: Digitalfernsehen
 format: vergleich

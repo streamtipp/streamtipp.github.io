@@ -2,7 +2,7 @@
 title: Live-TV oder Streaming - was lohnt sich 2026?
 description: Eine Stefan-Raab-Show will an den Erfolg von Immer wieder sonntags anknüpfen - wir vergleichen, wann sich Live-TV und wann sich Streaming eher lohnt.
 tags: [Streaming]
-date: 2026-09-05
+date: 2026-09-02
 slug: live-tv-oder-streaming-was-lohnt-sich-2026
 source: Digitalfernsehen
 format: vergleich

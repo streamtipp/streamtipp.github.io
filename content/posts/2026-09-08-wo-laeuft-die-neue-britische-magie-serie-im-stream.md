@@ -2,7 +2,7 @@
 title: Wo läuft die neue britische Magie-Serie im Stream?
 description: Eine britische Serie über Magie in einem Schuppen kommt nach Deutschland und hat schon eine zweite Staffel sicher – hier der aktuelle Stand zum Stream.
 tags: [Streaming, Serien]
-date: 2026-09-11
+date: 2026-09-08
 slug: wo-laeuft-die-neue-britische-magie-serie-im-stream
 source: Serienjunkies
 format: wo-streamen

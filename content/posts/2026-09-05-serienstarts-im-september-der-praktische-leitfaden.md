@@ -2,7 +2,7 @@
 title: Serienstarts im September: Der praktische Leitfaden
 description: Jeden Monat werden neue Serien angekündigt – so entscheidest du in der aktuellen September-Welle, was sich für dich wirklich lohnt.
 tags: [Serien, Streaming]
-date: 2026-09-08
+date: 2026-09-05
 slug: serienstarts-im-september-der-praktische-leitfaden
 source: Serienjunkies
 format: guide

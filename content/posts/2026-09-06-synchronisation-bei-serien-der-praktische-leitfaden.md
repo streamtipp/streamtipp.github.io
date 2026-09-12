@@ -2,7 +2,7 @@
 title: Synchronisation bei Serien: Der praktische Leitfaden
 description: Was tun bei schlechter Synchro auf Prime Video, Netflix und Co: Audiospur wechseln, Sync-Fehler erkennen und wann sich die Originalversion lohnt.
 tags: [Streaming, Serien]
-date: 2026-09-09
+date: 2026-09-06
 slug: synchronisation-bei-serien-der-praktische-leitfaden
 source: Serienjunkies
 format: guide

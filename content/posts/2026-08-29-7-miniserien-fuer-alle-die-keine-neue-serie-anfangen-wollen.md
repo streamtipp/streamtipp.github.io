@@ -2,7 +2,7 @@
 title: 7 Miniserien für alle, die keine neue Serie anfangen wollen
 description: Sieben abgeschlossene Miniserien für Abende, an denen du eine gute Geschichte willst, aber keine neue Serie mit ungewisser Zukunft beginnen möchtest.
 tags: [Streaming, Serien]
-date: 2026-09-01
+date: 2026-08-29
 slug: 7-miniserien-fuer-alle-die-keine-neue-serie-anfangen-wollen
 source: Serienjunkies
 format: listicle

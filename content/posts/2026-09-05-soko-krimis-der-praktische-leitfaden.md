@@ -2,7 +2,7 @@
 title: SOKO-Krimis: Der praktische Leitfaden
 description: SOKO Köln kehrt zurück, aber es gibt noch acht weitere SOKO-Reihen. Hier findest du raus, welche zu dir passt und wie du einsteigst.
 tags: [Krimi und Thriller, Streaming]
-date: 2026-09-08
+date: 2026-09-05
 slug: soko-krimis-der-praktische-leitfaden
 source: Digitalfernsehen
 format: guide

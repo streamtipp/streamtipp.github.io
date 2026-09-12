@@ -67,12 +67,66 @@ function pickFormat(formats) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+// Themen aus dem eigenen Plan. Sie haben Vorrang, weil sie dauerhaft gesucht
+// werden, waehrend eine Tagesmeldung nach zwei Wochen niemanden mehr
+// interessiert. Saisonales gewinnt gegen Zeitloses, solange sein Fenster offen
+// ist: Wer am 24. Dezember ueber Weihnachtsfilme schreibt, ist ein Jahr zu
+// spaet dran, denn Suchmaschinen brauchen Wochen.
+
+function imFenster(eintrag, heute) {
+  if (!eintrag.ab || !eintrag.bis) return true;
+  const tag = `${String(heute.getMonth() + 1).padStart(2, '0')}-${String(heute.getDate()).padStart(2, '0')}`;
+  // Fenster ueber den Jahreswechsel hinweg, etwa 12-10 bis 01-06.
+  return eintrag.ab <= eintrag.bis
+    ? tag >= eintrag.ab && tag <= eintrag.bis
+    : tag >= eintrag.ab || tag <= eintrag.bis;
+}
+
+function planThemen(formats) {
+  let plan;
+  try {
+    plan = loadConfig('themenplan.json');
+  } catch {
+    return [];
+  }
+
+  const heute = new Date();
+  const formOder = (id) => formats.find((f) => f.id === id) || formats[0];
+
+  const saisonal = (plan.saisonal || [])
+    .filter((e) => imFenster(e, heute))
+    .map((e) => ({ hook: e.titel, origin: 'plan', anlass: e.anlass, format: formOder(e.form) }));
+
+  const evergreen = (plan.evergreen || [])
+    .map((e) => ({ hook: e.titel, origin: 'plan', format: formOder(e.form) }));
+
+  return [...saisonal, ...shuffle(evergreen)];
+}
+
 export async function discover(count) {
   const niche = loadConfig('niche.json');
   const sources = effectiveSources();
   const formats = effectiveFormats();
   const state = loadState();
   const used = new Set(state.usedTopics || []);
+
+  // Erst den Plan abarbeiten. Nur was danach noch fehlt, kommt aus den Feeds.
+  const ausPlan = planThemen(formats);
+  const chosenPlan = [];
+  for (const cand of ausPlan) {
+    const key = slugify(cand.hook);
+    if (!key || used.has(key)) continue;
+    used.add(key);
+    chosenPlan.push({ ...cand, key });
+    if (chosenPlan.length >= count) break;
+  }
+
+  if (chosenPlan.length) {
+    const s = chosenPlan.filter((c) => c.anlass).length;
+    log('discover', `${chosenPlan.length} aus dem Themenplan${s ? `, davon ${s} saisonal` : ''}`);
+  }
+  if (chosenPlan.length >= count) return chosenPlan;
+  const restCount = count - chosenPlan.length;
 
   const fromFeeds = [];
   for (const source of sources) {
@@ -100,11 +154,12 @@ export async function discover(count) {
     if (!key || used.has(key)) continue;
     used.add(key);
     chosen.push({ ...cand, key, format: pickFormat(formats) });
-    if (chosen.length >= count) break;
+    if (chosen.length >= restCount) break;
   }
 
-  if (!chosen.length) log('discover', 'Keine neuen Themen gefunden. Seed-Liste in config/niche.json erweitern.');
-  return chosen;
+  const alle = [...chosenPlan, ...chosen];
+  if (!alle.length) log('discover', 'Keine neuen Themen gefunden. Themenplan oder Seed-Liste erweitern.');
+  return alle;
 }
 
 function shuffle(arr) {

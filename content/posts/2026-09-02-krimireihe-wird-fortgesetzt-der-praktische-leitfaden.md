@@ -2,7 +2,7 @@
 title: Krimireihe wird fortgesetzt: Der praktische Leitfaden
 description: Wenn ein Sender eine Krimireihe fortsetzt, stellt sich die Frage, wo man einsteigt und was sich ändert – dieser Leitfaden gibt Orientierung.
 tags: [Krimi und Thriller, Serien, Streaming]
-date: 2026-09-05
+date: 2026-09-02
 slug: krimireihe-wird-fortgesetzt-der-praktische-leitfaden
 source: Digitalfernsehen
 format: guide

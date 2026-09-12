@@ -2,7 +2,7 @@
 title: Serienfinale: Der praktische Leitfaden
 description: Deine Lieblingsserie bekommt eine letzte Staffel angekündigt: Was das für dich als Zuschauer bedeutet und wie du die Zeit bis zum Ende sinnvoll nutzt.
 tags: [Serien, Streaming]
-date: 2026-09-07
+date: 2026-09-04
 slug: serienfinale-der-praktische-leitfaden
 source: Serienjunkies
 format: guide
