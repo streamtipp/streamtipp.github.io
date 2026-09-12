@@ -1,0 +1,10 @@
+{
+  "rss": [
+    { "name": "Moviepilot News", "url": "https://www.moviepilot.de/rss/news", "weight": 3 },
+    { "name": "Serienjunkies", "url": "https://www.serienjunkies.de/rss/", "weight": 3 },
+    { "name": "4kfilme Heimkino", "url": "https://www.4kfilme.de/feed/", "weight": 2 },
+    { "name": "Digitalfernsehen", "url": "https://www.digitalfernsehen.de/feed/", "weight": 1 },
+    { "name": "Google Trends DE", "url": "https://trends.google.de/trending/rss?geo=DE", "weight": 1 }
+  ],
+  "note": "Feeds duerfen ausfallen. Die Pipeline faellt dann auf seedTopics aus niche.json zurueck. Neue Feeds vorher mit 'npm run doctor' pruefen."
+}

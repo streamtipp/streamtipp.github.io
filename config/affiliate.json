@@ -1,0 +1,17 @@
+{
+  "amazon": {
+    "enabled": false,
+    "partnerTag": "PLATZHALTER-21",
+    "domain": "amazon.de",
+    "note": "enabled erst auf true setzen, wenn das PartnerNet-Konto wirklich freigeschaltet ist."
+  },
+  "disclosure": "Werbung: Dieser Beitrag enthaelt Affiliate-Links. Kaufst du darueber, bekomme ich eine Provision. Fuer dich aendert sich der Preis nicht.",
+  "productSlots": [
+    { "keyword": "Beamer", "query": "beamer full hd wohnzimmer" },
+    { "keyword": "Soundbar", "query": "soundbar tv" },
+    { "keyword": "Streaming-Stick", "query": "streaming stick 4k" },
+    { "keyword": "Blu-ray", "query": "blu ray film" },
+    { "keyword": "Leinwand", "query": "beamer leinwand" }
+  ]
+}
+

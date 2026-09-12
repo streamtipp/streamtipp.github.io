@@ -1,0 +1,11 @@
+{
+  "title": "Streamtipp",
+  "tagline": "Was heute Abend wirklich lohnt",
+  "description": "Konkrete Film- und Serienempfehlungen, Streaming-Vergleiche und Heimkino-Tipps. Jeden Tag neu.",
+  "lang": "de",
+  "baseUrl": "https://BENUTZERNAME.github.io/contentbot",
+  "author": "PLATZHALTER_NAME",
+  "email": "PLATZHALTER_EMAIL",
+  "postsPerDay": 2,
+  "maxPostsOnIndex": 30
+}

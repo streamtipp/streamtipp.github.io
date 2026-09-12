@@ -1,0 +1,21 @@
+{
+  "name": "contentbot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Automatisierte Content- und Affiliate-Pipeline: Themen finden, Artikel schreiben, statische Seite bauen.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "daily": "node src/pipeline.mjs",
+    "dry": "node src/pipeline.mjs --dry",
+    "build": "node src/pipeline.mjs --build",
+    "preflight": "node -e \"import('./src/preflight.mjs').then(m => process.exit(m.reportPreflight() ? 0 : 1))\"",
+    "doctor": "node src/doctor.mjs",
+    "serve": "node src/serve.mjs"
+  },
+  "optionalDependencies": {
+    "@anthropic-ai/sdk": "^0.72.0"
+  }
+}

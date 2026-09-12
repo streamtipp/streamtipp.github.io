@@ -1,0 +1,28 @@
+{
+  "niche": "Filme, Serien und Streaming im deutschsprachigen Raum",
+  "audience": "Menschen, die abends etwas schauen wollen und keine Lust auf endloses Scrollen haben",
+  "voice": "direkt, konkret, ohne Werbesprache. Kurze Saetze. Keine Superlative ohne Begruendung.",
+  "wordTarget": 900,
+  "formats": [
+    { "id": "listicle", "pattern": "{n} {thing} fuer {occasion}", "weight": 3 },
+    { "id": "vergleich", "pattern": "{a} oder {b} - was lohnt sich {year}?", "weight": 2 },
+    { "id": "guide", "pattern": "{thing}: Der praktische Leitfaden", "weight": 2 },
+    { "id": "wo-streamen", "pattern": "Wo laeuft {thing} im Stream?", "weight": 3 }
+  ],
+  "seedTopics": [
+    "Filmabend zu zweit",
+    "Serien zum Nebenbeischauen",
+    "Beamer fuers Wohnzimmer",
+    "Streaming-Abos vergleichen",
+    "Soundbar oder Surround-Set",
+    "Filme unter 100 Minuten",
+    "Serien mit wenigen Folgen",
+    "Heimkino unter 500 Euro"
+  ],
+  "bannedClaims": [
+    "garantiert",
+    "unglaublich",
+    "das beste Produkt aller Zeiten",
+    "Geheimtipp der Profis"
+  ]
+}

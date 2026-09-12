@@ -1,0 +1,54 @@
+name: Seite bauen und veroeffentlichen
+
+# Kein Modellaufruf in der Cloud. Die Artikel entstehen lokal auf deinem
+# Rechner und werden committet. Hier wird nur gebaut und deployed, damit der
+# Workflow ohne API-Key und ohne Kosten laeuft.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/**'
+      - 'config/**'
+      - 'site/**'
+      - 'src/**'
+      - '.github/workflows/publish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Preflight und Build
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
