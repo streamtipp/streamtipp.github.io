@@ -252,25 +252,10 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    process.stdout.write(`Port ${PORT} ist belegt. Laeuft die App schon? Sonst: PORT=4181 npm run app\n`);
-    process.exitCode = 0;
-    return;
-  }
-  process.stderr.write(`App konnte nicht starten: ${err.message}\n`);
-  process.exitCode = 1;
-});
-
-// Nur lokal lauschen. Die App steuert die Erzeugung von Inhalten an, das
-// gehoert nicht ins Netzwerk.
-server.listen(PORT, '127.0.0.1', () => {
-  const adresse = `http://127.0.0.1:${PORT}`;
-  log('app', `laeuft auf ${adresse}`);
-
+// Edge im App-Modus: eigenes Fenster, keine Adressleiste, keine Tabs.
+function fensterOeffnen(adresse) {
   if (process.argv.includes('--kein-fenster')) return;
 
-  // Edge im App-Modus: eigenes Fenster, keine Adressleiste, keine Tabs.
   const edge = [
     'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
     'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
@@ -281,4 +266,48 @@ server.listen(PORT, '127.0.0.1', () => {
   } else {
     spawn('cmd', ['/c', 'start', '', adresse], { detached: true, stdio: 'ignore' }).unref();
   }
+}
+
+// Der belegte Port ist der haeufigste Fall: Die App laeuft schon, weil sie
+// vorhin gestartet wurde. Frueher endete der zweite Start hier stillschweigend,
+// ohne Fenster. Aus Sicht des Benutzers passierte beim Doppelklick nichts.
+// Jetzt wird geprueft, ob dort die eigene App antwortet, und falls ja einfach
+// das Fenster dafuer geoeffnet.
+server.on('error', async (err) => {
+  const adresse = `http://127.0.0.1:${PORT}`;
+
+  if (err.code === 'EADDRINUSE') {
+    let eigene = false;
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 4000);
+      const r = await fetch(`${adresse}/api/status`, { signal: ctrl.signal });
+      clearTimeout(t);
+      eigene = r.ok && Boolean((await r.json()).site);
+    } catch { /* dort antwortet etwas anderes oder nichts */ }
+
+    if (eigene) {
+      log('app', `laeuft bereits auf ${adresse}, oeffne das Fenster`);
+      fensterOeffnen(adresse);
+      process.exitCode = 0;
+      return;
+    }
+
+    process.stderr.write(
+      `Port ${PORT} ist von einem anderen Programm belegt. Mit anderem Port starten: PORT=4181 npm run app\n`
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  process.stderr.write(`App konnte nicht starten: ${err.message}\n`);
+  process.exitCode = 1;
+});
+
+// Nur lokal lauschen. Die App steuert die Erzeugung von Inhalten an, das
+// gehoert nicht ins Netzwerk.
+server.listen(PORT, '127.0.0.1', () => {
+  const adresse = `http://127.0.0.1:${PORT}`;
+  log('app', `laeuft auf ${adresse}`);
+  fensterOeffnen(adresse);
 });
