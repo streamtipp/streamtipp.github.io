@@ -33,6 +33,26 @@ export async function complete(prompt, { maxTokens = 16000 } = {}) {
 
 // --- Weg 1: Claude Code CLI -------------------------------------------------
 
+// Verbrauchszaehler fuer den laufenden Prozess. Die CLI meldet pro Aufruf,
+// wie viele Token geflossen sind und was das ueber die API gekostet haette.
+// Auf einem Abo wird der Dollarwert nicht abgerechnet, er ist der einzige
+// vergleichbare Massstab dafuer, wie stark ein Lauf ins Kontingent greift.
+
+export const verbrauch = {
+  aufrufe: 0,
+  outputTokens: 0,
+  cacheReadTokens: 0,
+  cacheCreationTokens: 0,
+  kostenGegenwert: 0,
+};
+
+export function verbrauchText() {
+  return (
+    `${verbrauch.aufrufe} Aufrufe, ${verbrauch.outputTokens.toLocaleString('de-DE')} Ausgabe-Token, ` +
+    `Gegenwert ${verbrauch.kostenGegenwert.toFixed(2)} USD`
+  );
+}
+
 function viaCli(prompt) {
   const bin = process.env.CLAUDE_BIN || 'claude';
 
@@ -40,7 +60,7 @@ function viaCli(prompt) {
   // Deshalb ein fertiger Kommandostring statt getrennter Argumente: so
   // bleibt der Aufruf identisch und Node warnt nicht wegen shell + args.
   // Der Prompt geht ueber stdin, nie ueber die Kommandozeile.
-  const command = `"${bin}" -p --output-format text`;
+  const command = `"${bin}" -p --output-format json`;
 
   return new Promise((resolve, reject) => {
     const child = spawn(command, [], {
@@ -69,7 +89,26 @@ function viaCli(prompt) {
         ));
       }
       if (code !== 0) return reject(new Error(`Claude-CLI Exit ${code}: ${detail || 'ohne Meldung'}`));
-      const text = out.trim();
+
+      let parsed;
+      try {
+        parsed = JSON.parse(out.replace(/^﻿/, '').trim());
+      } catch {
+        return reject(new Error(`Antwort der Claude-CLI ist kein JSON: ${out.slice(0, 200)}`));
+      }
+
+      if (parsed.is_error) {
+        return reject(new Error(`Claude-CLI meldet Fehler: ${parsed.result || parsed.subtype || 'ohne Angabe'}`));
+      }
+
+      const u = parsed.usage || {};
+      verbrauch.aufrufe += 1;
+      verbrauch.outputTokens += u.output_tokens || 0;
+      verbrauch.cacheReadTokens += u.cache_read_input_tokens || 0;
+      verbrauch.cacheCreationTokens += u.cache_creation_input_tokens || 0;
+      verbrauch.kostenGegenwert += parsed.total_cost_usd || 0;
+
+      const text = String(parsed.result || '').trim();
       if (!text) return reject(new Error('Claude-CLI hat leeren Text geliefert.'));
       resolve(text);
     });

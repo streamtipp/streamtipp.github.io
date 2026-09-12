@@ -10,7 +10,7 @@ import { discover } from './discover.mjs';
 import { writeArticle } from './write.mjs';
 import { build } from './build.mjs';
 import { reportPreflight } from './preflight.mjs';
-import { detectProvider } from './llm.mjs';
+import { detectProvider, verbrauchText } from './llm.mjs';
 import { refreshFromExports } from './performance.mjs';
 import { learn } from './learn.mjs';
 import { loadConfig, loadState, saveState, log } from './util.mjs';
@@ -82,6 +82,7 @@ async function main() {
   build();
   const ok = reportPreflight();
 
+  log('verbrauch', verbrauchText());
   log('done', `${written} von ${topics.length} Artikeln geschrieben. Deploy ${ok ? 'freigegeben' : 'blockiert'}.`);
   if (!ok) process.exitCode = 1;
 }
