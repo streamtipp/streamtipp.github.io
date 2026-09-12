@@ -30,7 +30,10 @@ async function main() {
 
   if (buildOnly) {
     build();
-    reportPreflight();
+    // Der Exit-Code ist entscheidend: In GitHub Actions ist er das Einzige,
+    // woran der Workflow einen fehlgeschlagenen Preflight erkennt. Ohne ihn
+    // wuerde eine Seite ohne gueltiges Impressum trotzdem veroeffentlicht.
+    if (!reportPreflight()) process.exitCode = 1;
     return;
   }
 
