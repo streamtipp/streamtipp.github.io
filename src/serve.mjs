@@ -40,6 +40,21 @@ http
     res.writeHead(200, { 'content-type': TYPES[path.extname(file)] || 'application/octet-stream' });
     fs.createReadStream(file).pipe(res);
   })
+  .on('error', (err) => {
+    // Ein belegter Port ist der Normalfall, wenn schon eine Vorschau laeuft.
+    // Dafuer braucht es keinen Absturz mit Stapelverfolgung.
+    if (err.code === 'EADDRINUSE') {
+      process.stdout.write(
+        `Port ${PORT} ist belegt. Entweder laeuft die Vorschau schon auf ` +
+        `http://localhost:${PORT}, oder starte sie mit einem anderen Port: ` +
+        `PORT=4174 npm run serve\n`
+      );
+      process.exitCode = 0;
+      return;
+    }
+    process.stderr.write(`Vorschau konnte nicht starten: ${err.message}\n`);
+    process.exitCode = 1;
+  })
   .listen(PORT, () => {
     process.stdout.write(`Vorschau laeuft auf http://localhost:${PORT}\n`);
   });
