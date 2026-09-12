@@ -8,5 +8,6 @@
   "email": "manuellorenz549@gmail.com",
   "postsPerDay": 2,
   "maxPostsOnIndex": 30,
-  "autopush": true
+  "autopush": true,
+  "indexNowKey": "e8d347f00c9b6cc2b1ab15bd5666f26c"
 }

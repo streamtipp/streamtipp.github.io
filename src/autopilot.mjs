@@ -123,6 +123,13 @@ async function main() {
       git(['commit', '-m', `Automatischer Lauf ${started.toISOString().slice(0, 10)}: ${written} Beitraege`]);
       git(['push', 'origin', 'HEAD']);
     }, journal);
+
+    // Erst melden, nachdem gepusht wurde. Die Schluesseldatei muss auf der
+    // Domain liegen, sonst lehnt Bing die Meldung ab.
+    await step('Bei Bing melden', async () => {
+      const { melden } = await import('./indexnow.mjs');
+      await melden();
+    }, journal);
   } else {
     const grund = !site.autopush ? 'autopush ist aus'
       : !pushErlaubt ? 'Probelauf mit --no-push'

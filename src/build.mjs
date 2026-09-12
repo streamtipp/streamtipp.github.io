@@ -206,16 +206,32 @@ ${verwandt.length ? `<section class="related">
     prefix: '../',
     aktuell: post.meta.format,
     body,
-    jsonLd: {
-      '@context': 'https://schema.org',
-      '@type': 'Article',
-      headline: post.meta.title,
-      description: post.meta.description,
-      datePublished: post.meta.date,
-      dateModified: post.meta.date,
-      author: { '@type': 'Person', name: site.author },
-      mainEntityOfPage: canonical,
-    },
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: post.meta.title,
+        description: post.meta.description,
+        datePublished: post.meta.date,
+        dateModified: post.meta.date,
+        inLanguage: site.lang,
+        keywords: tags.join(', '),
+        articleSection: labelFor(defs, post.meta.format),
+        author: { '@type': 'Person', name: site.author },
+        publisher: { '@type': 'Person', name: site.author },
+        isAccessibleForFree: true,
+        mainEntityOfPage: canonical,
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: site.title, item: `${site.baseUrl}/` },
+          { '@type': 'ListItem', position: 2, name: labelFor(defs, post.meta.format), item: `${site.baseUrl}/kategorie/${post.meta.format}/` },
+          { '@type': 'ListItem', position: 3, name: post.meta.title },
+        ],
+      },
+    ],
   });
 }
 
@@ -232,6 +248,21 @@ ${cards || '<p>Noch keine Beitraege. Starte die Pipeline mit <code>npm run daily
     canonical: `${site.baseUrl}/`,
     aktuell: 'start',
     body,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: site.title,
+      alternateName: site.tagline,
+      description: site.description,
+      url: `${site.baseUrl}/`,
+      inLanguage: site.lang,
+      publisher: { '@type': 'Person', name: site.author },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: { '@type': 'EntryPoint', urlTemplate: `${site.baseUrl}/suche/?q={search_term_string}` },
+        'query-input': 'required name=search_term_string',
+      },
+    },
   });
 }
 
@@ -310,6 +341,68 @@ ${items}
 </channel></rss>`;
 }
 
+// KI-Assistenten haben keinen eigenen Index. ChatGPT sucht ueber Bing, Claude
+// ueber Brave, Perplexity ueber einen eigenen Crawler. Auffindbarkeit heisst
+// deshalb zweierlei: in den Suchindizes stehen, und den KI-Crawlern den Zugang
+// nicht verbieten. Der Platzhalter erlaubte zwar schon alles, viele Betreiber
+// pruefen aber auf ihren eigenen Namen. Deshalb hier ausdruecklich.
+
+const KI_CRAWLER = [
+  'GPTBot', 'OAI-SearchBot', 'ChatGPT-User',
+  'ClaudeBot', 'anthropic-ai', 'Claude-Web', 'Claude-SearchBot',
+  'PerplexityBot', 'Perplexity-User',
+  'Google-Extended', 'Applebot-Extended', 'Amazonbot',
+  'meta-externalagent', 'cohere-ai', 'DuckAssistBot', 'CCBot',
+];
+
+function robots(site) {
+  const bloecke = KI_CRAWLER.map((name) => `User-agent: ${name}\nAllow: /`).join('\n\n');
+  return `# Alle Crawler sind willkommen, auch die von KI-Assistenten.
+User-agent: *
+Allow: /
+
+${bloecke}
+
+Sitemap: ${site.baseUrl}/sitemap.xml
+`;
+}
+
+// Nach der Konvention von llmstxt.org: eine kompakte Uebersicht in Markdown,
+// damit ein Sprachmodell die Seite erfassen kann, ohne 31 HTML-Dokumente zu
+// laden. Kein offizieller Standard, kostet aber nichts.
+
+function llmsTxt(site, defs, posts) {
+  const kapitel = defs.map((d) => {
+    const eigene = posts.filter((p) => p.meta.format === d.id);
+    if (!eigene.length) return '';
+    const zeilen = eigene
+      .map((p) => `- [${p.meta.title}](${site.baseUrl}/${p.slug}/): ${p.meta.description || ''}`)
+      .join('\n');
+    return `## ${d.label}\n\n${d.hinweis ? `${d.hinweis}.\n\n` : ''}${zeilen}\n`;
+  }).filter(Boolean).join('\n');
+
+  return `# ${site.title}
+
+> ${site.description}
+
+${site.title} ist eine deutschsprachige Website zu Filmen, Serien, Streaming und
+Heimkino. Die Beitraege beantworten konkrete Fragen: was sich heute Abend zu
+schauen lohnt, welches Geraet oder Abo fuer welchen Zweck passt, und wie sich
+ein Heimkino ohne grosses Budget einrichten laesst.
+
+Betreiber: ${site.author}. Beitraege mit Affiliate-Links sind am Textanfang als
+Werbung gekennzeichnet. Die Texte entstehen mit Unterstuetzung eines
+Sprachmodells und werden redaktionell geprueft.
+
+${kapitel}
+## Weiteres
+
+- [Suche](${site.baseUrl}/suche/): alle Beitraege durchsuchen
+- [Impressum](${site.baseUrl}/impressum.html)
+- [Datenschutz](${site.baseUrl}/datenschutz.html)
+`;
+}
+
 function sitemap(site, defs, posts) {
   const urls = [
     `${site.baseUrl}/`,
@@ -369,11 +462,15 @@ export function build() {
 
   fs.writeFileSync(path.join(paths.dist, 'feed.xml'), feed(site, posts));
   fs.writeFileSync(path.join(paths.dist, 'sitemap.xml'), sitemap(site, defs, posts));
-  fs.writeFileSync(
-    path.join(paths.dist, 'robots.txt'),
-    `User-agent: *\nAllow: /\nSitemap: ${site.baseUrl}/sitemap.xml\n`
-  );
+  fs.writeFileSync(path.join(paths.dist, 'robots.txt'), robots(site));
+  fs.writeFileSync(path.join(paths.dist, 'llms.txt'), llmsTxt(site, defs, posts));
   fs.writeFileSync(path.join(paths.dist, '.nojekyll'), '');
+
+  // Schluesseldatei fuer IndexNow. Bing prueft damit, dass wir die Domain
+  // wirklich kontrollieren, bevor es gemeldete Adressen annimmt.
+  if (site.indexNowKey) {
+    fs.writeFileSync(path.join(paths.dist, `${site.indexNowKey}.txt`), site.indexNowKey);
+  }
 
   log('build', `${posts.length} Beitraege, ${defs.length} Kategorien, Suchindex nach dist/`);
   return posts.length;
