@@ -1,8 +1,8 @@
 ---
 title: 6 Serien, die eine Schwangerschaft im Cast clever lösten
 description: Wenn eine Serien-Hauptdarstellerin schwanger wird, muss das Drehbuch reagieren – diese sechs Serien haben das ohne Peinlichkeit hinbekommen.
-tags: [Serien, Streaming, Serientipps, Schauspieler, Drehbuch]
-date: 2026-09-12
+tags: [Serien, Streaming]
+date: 2026-08-31
 slug: 6-serien-die-eine-schwangerschaft-im-cast-clever-loesten
 source: Serienjunkies
 format: listicle

@@ -1,8 +1,8 @@
 ---
 title: Wo läuft Dexter: Resurrection im Stream?
 description: Dexter: Resurrection knüpft an New Blood an – hier erfährst du, was die Serie ist, worauf sie aufbaut und wie du an Infos zur Verfügbarkeit kommst.
-tags: [Dexter, Streaming, Serien, Krimi, Michael C. Hall]
-date: 2026-09-12
+tags: [Streaming, Serien, Krimi und Thriller]
+date: 2026-09-10
 slug: wo-laeuft-dexter-resurrection-im-stream
 source: Digitalfernsehen
 format: wo-streamen

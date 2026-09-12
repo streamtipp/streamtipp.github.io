@@ -1,7 +1,7 @@
 ---
 title: Wo laeuft Tabulos im Stream?
 description: RTLzwei hat mit Tabulos ein neues Dating-Format angekuendigt – hier erfaehrst du, wo du die Sendung im TV und im Stream verfolgen kannst.
-tags: [Tabulos, RTLzwei, Dating-Show, Streaming, RTL+]
+tags: [Streaming]
 date: 2026-09-12
 slug: wo-laeuft-tabulos-im-stream
 source: Digitalfernsehen

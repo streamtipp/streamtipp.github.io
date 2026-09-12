@@ -1,8 +1,8 @@
 ---
 title: 7 Ausbruchsserien für einen Abend wie Prison Break
 description: Ein Ableger von Prison Break ist angekündigt – hier sind sieben Serien und ein Film über Gefängnis, Flucht und Verfolgung für einen spannungsgeladenen Abend.
-tags: [Serien, Prison Break, Streaming, Thriller, Gefängnisserien]
-date: 2026-09-12
+tags: [Serien, Streaming]
+date: 2026-08-31
 slug: 7-ausbruchsserien-fuer-einen-abend-wie-prison-break
 source: Serienjunkies
 format: listicle

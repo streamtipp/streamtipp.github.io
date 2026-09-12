@@ -1,8 +1,8 @@
 ---
 title: Wo läuft IT: Welcome to Derry im Stream?
 description: Die neue Stephen-King-Serie "IT: Welcome to Derry" gilt als Highlight des Horror-Herbstes – hier erfährst du, wo du sie in Deutschland siehst.
-tags: [Stephen King, IT: Welcome to Derry, Streaming, Horror-Serie, WOW]
-date: 2026-09-12
+tags: [Streaming]
+date: 2026-09-11
 slug: wo-laeuft-it-welcome-to-derry-im-stream
 source: Serienjunkies
 format: wo-streamen

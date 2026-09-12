@@ -1,8 +1,8 @@
 ---
 title: 7 Krimiserien für einen richtig guten Serienabend
 description: Sieben Krimiserien aus Deutschland, Skandinavien, Großbritannien und den USA für alle, die abends schnell etwas Gutes finden wollen.
-tags: [krimiserien, streaming, serien, filmabend, tipps]
-date: 2026-09-12
+tags: [Krimi und Thriller, Streaming, Serien]
+date: 2026-09-01
 slug: 7-krimiserien-fuer-einen-richtig-guten-serienabend
 source: Serienjunkies
 format: listicle

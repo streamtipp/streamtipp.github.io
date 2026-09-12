@@ -1,8 +1,8 @@
 ---
 title: 6 Bud-Spencer-und-Terence-Hill-Filme für einen faulen Abend
 description: Zwei ihrer Klassiker erscheinen erstmals in 4K – Anlass genug, sechs Bud-Spencer-und-Terence-Hill-Filme für einen entspannten Abend vorzustellen.
-tags: [Bud Spencer, Terence Hill, Kultfilme, Filmabend, Klassiker]
-date: 2026-09-12
+tags: [Klassiker]
+date: 2026-08-30
 slug: 6-bud-spencer-und-terence-hill-filme-fuer-einen-faulen-abend
 source: 4kfilme Heimkino
 format: listicle

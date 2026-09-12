@@ -38,15 +38,44 @@ Erlaubtes Markdown: ## und ### Ueberschriften, Absaetze, Aufzaehlungen mit -,
 nummerierte Listen, **fett**, *kursiv*, > Zitate. Keine Tabellen, keine Bilder,
 keine HTML-Tags, keine Links.
 
+Themen: Waehle zwei bis drei Begriffe aus genau dieser Liste. Erfinde keine
+eigenen, auch keine Abwandlungen im Plural oder Singular.
+${(niche.themen || []).join(', ')}
+
 Antworte mit genau diesem Aufbau und nichts davor oder danach:
 
 ---
 title: <Ueberschrift, hoechstens 65 Zeichen, ohne Doppelpunkt am Anfang>
 description: <ein Satz, 120 bis 160 Zeichen>
-tags: [<drei bis fuenf Schlagworte, kommagetrennt>]
+tags: [<zwei bis drei Begriffe aus der Themenliste, kommagetrennt>]
 ---
 
 <Artikeltext in Markdown, beginnend mit einem Absatz, nicht mit einer Ueberschrift>`;
+}
+
+// Das Modell haelt sich nicht immer an die Themenliste. Deshalb wird hier
+// hart gefiltert: Was nicht in der Liste steht, fliegt raus. Ohne diesen
+// Schritt entstehen aus 15 Artikeln 50 Einzelschlagworte, und Kategorien
+// werden damit wertlos.
+
+export function normalizeTags(raw, erlaubt) {
+  const roh = Array.isArray(raw) ? raw : String(raw || '').split(',');
+  const index = new Map(erlaubt.map((t) => [t.toLowerCase(), t]));
+
+  const treffer = [];
+  for (const t of roh) {
+    const key = String(t).trim().toLowerCase();
+    if (!key) continue;
+    const exakt = index.get(key);
+    if (exakt && !treffer.includes(exakt)) { treffer.push(exakt); continue; }
+    // Zweiter Versuch: Singular und Plural gehen oft durcheinander.
+    const nah = erlaubt.find((e) => {
+      const a = e.toLowerCase();
+      return a.startsWith(key.slice(0, 5)) || key.startsWith(a.slice(0, 5));
+    });
+    if (nah && !treffer.includes(nah)) treffer.push(nah);
+  }
+  return treffer.slice(0, 3);
 }
 
 function validate(meta, body) {
@@ -75,10 +104,14 @@ export async function writeArticle(topic) {
 
   if (fs.existsSync(full)) throw new Error(`Datei existiert schon: ${file}`);
 
+  const erlaubt = niche.themen || [];
+  const tags = erlaubt.length ? normalizeTags(meta.tags, erlaubt) : (Array.isArray(meta.tags) ? meta.tags : []);
+  if (erlaubt.length && !tags.length) tags.push(erlaubt[0]);
+
   const front = {
     title: meta.title,
     description: meta.description,
-    tags: Array.isArray(meta.tags) ? meta.tags : String(meta.tags).split(',').map((t) => t.trim()),
+    tags,
     date,
     slug,
     source: topic.origin,

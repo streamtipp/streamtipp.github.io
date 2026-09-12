@@ -4,10 +4,24 @@
   "voice": "direkt, konkret, ohne Werbesprache. Kurze Saetze. Keine Superlative ohne Begruendung.",
   "wordTarget": 900,
   "formats": [
-    { "id": "listicle", "pattern": "{n} {thing} fuer {occasion}", "weight": 3 },
-    { "id": "vergleich", "pattern": "{a} oder {b} - was lohnt sich {year}?", "weight": 2 },
-    { "id": "guide", "pattern": "{thing}: Der praktische Leitfaden", "weight": 2 },
-    { "id": "wo-streamen", "pattern": "Wo laeuft {thing} im Stream?", "weight": 3 }
+    { "id": "listicle", "label": "Listen", "hinweis": "Empfehlungen zum Durchgehen", "pattern": "{n} {thing} fuer {occasion}", "weight": 3 },
+    { "id": "vergleich", "label": "Vergleiche", "hinweis": "Zwei Optionen gegenuebergestellt", "pattern": "{a} oder {b} - was lohnt sich {year}?", "weight": 2 },
+    { "id": "guide", "label": "Leitfaeden", "hinweis": "Ein Thema von Grund auf", "pattern": "{thing}: Der praktische Leitfaden", "weight": 2 },
+    { "id": "wo-streamen", "label": "Wo laeuft was", "hinweis": "Wo ein Titel zu finden ist", "pattern": "Wo laeuft {thing} im Stream?", "weight": 3 }
+  ],
+  "themen": [
+    "Streaming",
+    "Serien",
+    "Filme",
+    "Heimkino",
+    "Technik",
+    "Klassiker",
+    "Krimi und Thriller",
+    "Action",
+    "Komoedie",
+    "Doku",
+    "Familie",
+    "Neu im Stream"
   ],
   "seedTopics": [
     "Filmabend zu zweit",

@@ -1,8 +1,8 @@
 ---
 title: 8 Filme und Serien für den ersten Test eurer neuen Soundbar
 description: TCL und Samsung bringen neue Dolby-Atmos-Soundbars – hier sind acht Filme und Serien, die euren neuen Sound sofort fordern.
-tags: [streaming, soundbar, dolby atmos, filme, serien]
-date: 2026-09-12
+tags: [Streaming, Filme, Serien]
+date: 2026-09-04
 slug: 8-filme-und-serien-fuer-den-ersten-test-eurer-neuen-soundbar
 source: 4kfilme Heimkino
 format: listicle

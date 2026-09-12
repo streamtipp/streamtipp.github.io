@@ -1,8 +1,8 @@
 ---
 title: Stephen-King-Verfilmungen: Der praktische Leitfaden
 description: Ein Überblick, wie du zwischen echtem Horror, spannungsgeladenem Drama und ruhigeren King-Stoffen unterscheidest und die richtige Wahl für den Abend triffst.
-tags: [Stephen King, Horror, Verfilmungen, Streaming, Serienabend]
-date: 2026-09-12
+tags: [Streaming, Serien]
+date: 2026-09-09
 slug: stephen-king-verfilmungen-der-praktische-leitfaden
 source: Moviepilot News
 format: guide

@@ -1,8 +1,8 @@
 ---
 title: 7 Serien und Filme für Abende ohne neue Reacher-Folgen
 description: Sieben Serien und Filme mit schweigsamen, hartgesottenen Hauptfiguren für alle, die auf robuste Krimi- und Actionkost stehen.
-tags: [Action, Krimi, Serientipps, Streaming, Thriller]
-date: 2026-09-12
+tags: [Action, Krimi und Thriller, Serien]
+date: 2026-09-03
 slug: 7-serien-und-filme-fuer-abende-ohne-neue-reacher-folgen
 source: Moviepilot News
 format: listicle
