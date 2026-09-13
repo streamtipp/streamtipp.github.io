@@ -90,7 +90,15 @@ export async function pinterestExport({ trocken = false } = {}) {
   const stand = standLaden();
   const posts = readPosts();
 
-  const label = (id) => (niche.formats || []).find((f) => f.id === id)?.label || 'Filmtipps';
+  // Suchbegriffe, nach denen auf Pinterest wirklich gesucht wird. Die
+  // Kategorienamen der Seite wie "Listen" taugen dafuer nicht.
+  const suchbegriff = {
+    listicle: 'Filmtipps',
+    vergleich: 'Streaming Vergleich',
+    guide: 'Heimkino Tipps',
+    'wo-streamen': 'Wo läuft was',
+  };
+  const label = (id) => suchbegriff[id] || (niche.formats || []).find((f) => f.id === id)?.label || 'Filmtipps';
   const kandidaten = posts.filter((p) => !stand.exportiert[p.slug] && fs.existsSync(pinDatei(p.slug)));
 
   // Nur was online ist. Parallel, aber nicht zu viele Anfragen auf einmal.
@@ -160,7 +168,8 @@ export async function pinterestExport({ trocken = false } = {}) {
   if (trocken || !zeilen.length) return ergebnis;
 
   const csv = [
-    SPALTEN.map(csvFeld).join(','),
+    // Kopfzeile unverpackt, genau wie im Muster von Pinterest.
+    SPALTEN.join(','),
     ...zeilen.map((z) => [z.titel, z.bild, z.pinnwand, '', z.beschreibung, z.link, z.termin, z.keywords].map(csvFeld).join(',')),
   ].join('\r\n') + '\r\n';
 
