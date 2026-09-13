@@ -89,7 +89,13 @@ export function pinterestUebersicht() {
   };
 }
 
-export async function pinterestExport({ trocken = false } = {}) {
+// heute: kleine Zusatzdatei fuer den laufenden Abend. Nimmt nur die heutigen
+// Uhrzeiten, die noch mindestens 15 Minuten entfernt sind. Reichen die nicht
+// fuer "max" Pins, bleibt das Datum leer, dann veroeffentlicht Pinterest den
+// Pin direkt beim Upload. Termine in der Vergangenheit werden nie geschrieben.
+// auswahl: optional eine Liste von Slugs in gewuenschter Reihenfolge, etwa um
+// fuer einen Abend gezielt passende Beitraege zu nehmen statt der Rangfolge.
+export async function pinterestExport({ trocken = false, heute: nurHeute = false, max = MAX_PRO_DATEI, auswahl = null } = {}) {
   const site = loadConfig('site.json');
   const niche = loadConfig('niche.json');
   const cfg = loadConfig('pinterest.json');
@@ -121,14 +127,20 @@ export async function pinterestExport({ trocken = false } = {}) {
   // zeitlosen Themen aus dem eigenen Plan, dann der Rest. Jeweils neueste zuerst.
   const rang = (p) => (p.meta.format === 'listicle' ? 0 : 1) * 2 + (p.meta.source === 'plan' ? 0 : 1);
   bereit.sort((a, b) => rang(a) - rang(b) || String(b.meta.date).localeCompare(String(a.meta.date)));
+  if (Array.isArray(auswahl) && auswahl.length) {
+    const reihenfolge = new Map(auswahl.map((s, i) => [s, i]));
+    const gewaehlt = bereit.filter((p) => reihenfolge.has(p.slug)).sort((a, b) => reihenfolge.get(a.slug) - reihenfolge.get(b.slug));
+    bereit.length = 0;
+    bereit.push(...gewaehlt);
+  }
 
   // Termine: ab morgen oder nach dem letzten schon geplanten Pin, je nachdem
   // was spaeter ist, damit zwei Exporte sich nicht am selben Tag stapeln.
   const heute = new Date();
   heute.setHours(0, 0, 0, 0);
   let start = new Date(heute);
-  start.setDate(start.getDate() + 1);
-  if (stand.letzterTermin) {
+  if (!nurHeute) start.setDate(start.getDate() + 1);
+  if (stand.letzterTermin && !nurHeute) {
     const nachLetztem = new Date(String(stand.letzterTermin).endsWith('Z') ? stand.letzterTermin : `${stand.letzterTermin}Z`);
     nachLetztem.setHours(0, 0, 0, 0);
     nachLetztem.setDate(nachLetztem.getDate() + 1);
@@ -140,12 +152,26 @@ export async function pinterestExport({ trocken = false } = {}) {
   const uhrzeiten = cfg.uhrzeiten?.length ? cfg.uhrzeiten : ['19:00'];
   const proTag = Math.max(1, Math.min(cfg.pinsProTag || 3, uhrzeiten.length));
 
+  const obergrenze = Math.min(MAX_PRO_DATEI, Math.max(1, Number(max) || MAX_PRO_DATEI));
+  const fruehestens = Date.now() + 15 * 60 * 1000;
+  const heutigeTermine = nurHeute
+    ? uhrzeiten.map((u) => termin(heute, u)).filter((t) => new Date(`${t}Z`).getTime() >= fruehestens)
+    : [];
+
   const zeilen = [];
   for (const p of bereit) {
-    if (zeilen.length >= MAX_PRO_DATEI) break;
-    const tag = new Date(start);
-    tag.setDate(tag.getDate() + Math.floor(zeilen.length / proTag));
-    if (tag > grenze) break;
+    if (zeilen.length >= obergrenze) break;
+
+    let pinTermin;
+    if (nurHeute) {
+      // Leeres Datum heisst bei Pinterest: sofort veroeffentlichen.
+      pinTermin = heutigeTermine[zeilen.length] || '';
+    } else {
+      const tag = new Date(start);
+      tag.setDate(tag.getDate() + Math.floor(zeilen.length / proTag));
+      if (tag > grenze) break;
+      pinTermin = termin(tag, uhrzeiten[zeilen.length % proTag]);
+    }
 
     const tags = Array.isArray(p.meta.tags) ? p.meta.tags : [];
     zeilen.push({
@@ -155,7 +181,7 @@ export async function pinterestExport({ trocken = false } = {}) {
       pinnwand: cfg.pinnwaende?.[p.meta.format] || 'Filmtipps',
       beschreibung: kuerzen(`${p.meta.description || ''} ${cfg.abschluss || ''}`, 500),
       link: `${site.baseUrl}/${p.slug}/`,
-      termin: termin(tag, uhrzeiten[zeilen.length % proTag]),
+      termin: pinTermin,
       keywords: [...new Set([...tags, label(p.meta.format)])].join(', '),
     });
   }
@@ -164,8 +190,9 @@ export async function pinterestExport({ trocken = false } = {}) {
     anzahl: zeilen.length,
     nichtOnline,
     zurueckgestellt: bereit.length - zeilen.length,
-    erster: zeilen[0]?.termin || null,
-    letzter: zeilen.at(-1)?.termin || null,
+    erster: zeilen.map((z) => z.termin).filter(Boolean).sort()[0] || null,
+    letzter: zeilen.map((z) => z.termin).filter(Boolean).sort().at(-1) || null,
+    sofort: zeilen.filter((z) => !z.termin).length,
     pinnwaende: [...new Set(zeilen.map((z) => z.pinnwand))],
     beispiel: zeilen[0] || null,
     datei: null,
@@ -187,8 +214,12 @@ export async function pinterestExport({ trocken = false } = {}) {
   // exakt "Title", und der Upload wuerde sie nicht erkennen.
   fs.writeFileSync(datei, csv, 'utf8');
 
-  for (const z of zeilen) stand.exportiert[z.slug] = { termin: z.termin, datei: name };
-  stand.letzterTermin = ergebnis.letzter;
+  for (const z of zeilen) stand.exportiert[z.slug] = { termin: z.termin || 'sofort', datei: name };
+  // Der spaetere Termin gewinnt. Eine Zusatzdatei fuer heute darf den Plan der
+  // grossen Datei nicht nach vorn ziehen, sonst stapeln sich spaeter zwei Exporte.
+  if (ergebnis.letzter && (!stand.letzterTermin || ergebnis.letzter > stand.letzterTermin)) {
+    stand.letzterTermin = ergebnis.letzter;
+  }
   fs.mkdirSync(paths.data, { recursive: true });
   fs.writeFileSync(STAND, JSON.stringify(stand, null, 2) + '\n');
 
@@ -198,7 +229,11 @@ export async function pinterestExport({ trocken = false } = {}) {
 
 if (process.argv[1] && process.argv[1].endsWith('pinterest.mjs')) {
   const trocken = process.argv.includes('--trocken');
-  pinterestExport({ trocken }).then((e) => {
+  const heute = process.argv.includes('--heute');
+  const maxArg = process.argv.indexOf('--max');
+  const max = maxArg !== -1 ? Number(process.argv[maxArg + 1]) : undefined;
+  pinterestExport({ trocken, heute, max }).then((e) => {
+    if (e.name) log('pinterest', `Datei: pinterest/${e.name}${e.sofort ? `, ${e.sofort} sofort` : ''}`);
     log('pinterest', `${e.anzahl} Pins${trocken ? ' (Trockenlauf)' : ''}, ${e.nichtOnline} noch nicht online, ${e.zurueckgestellt} für den nächsten Export zurückgestellt`);
     if (e.beispiel) log('pinterest', `Beispiel: ${JSON.stringify(e.beispiel)}`);
   });
