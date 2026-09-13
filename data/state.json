@@ -319,6 +319,86 @@
       "slug": "original-oder-synchron-wann-sich-untertitel-wirklich-lohnen",
       "date": "2026-09-13",
       "title": "Original oder Synchron: Wann sich Untertitel wirklich lohnen"
+    },
+    {
+      "slug": "kurze-filme-fuer-einen-abend-ohne-zeitdruck",
+      "date": "2026-09-13",
+      "title": "Kurze Filme für einen Abend ohne Zeitdruck"
+    },
+    {
+      "slug": "neue-streaming-boxen-mit-google-tv-was-bringt-das-fuers-sofa",
+      "date": "2026-09-13",
+      "title": "Neue Streaming-Boxen mit Google TV: Was bringt das fürs Sofa?"
+    },
+    {
+      "slug": "wo-laeuft-die-truman-show-im-stream",
+      "date": "2026-09-13",
+      "title": "Wo läuft Die Truman Show im Stream?"
+    },
+    {
+      "slug": "the-split-wo-die-anwaltsserie-herkommt-und-was-das-spin-off-bringt",
+      "date": "2026-09-13",
+      "title": "The Split: Wo die Anwaltsserie herkommt und was das Spin-off bringt"
+    },
+    {
+      "slug": "ard-mediathek-oder-netflix-was-lohnt-sich-2026",
+      "date": "2026-09-13",
+      "title": "ARD Mediathek oder Netflix - was lohnt sich 2026?"
+    },
+    {
+      "slug": "netflix-kataloge-im-ausland-der-praktische-leitfaden",
+      "date": "2026-09-13",
+      "title": "Netflix-Kataloge im Ausland: Der praktische Leitfaden"
+    },
+    {
+      "slug": "7-actionserien-im-stream-wenn-gladiatoren-duelle-nicht-mehr-laufen",
+      "date": "2026-09-13",
+      "title": "7 Actionserien im Stream, wenn Gladiatoren-Duelle nicht mehr laufen"
+    },
+    {
+      "slug": "zdf-mediathek-oder-netflix-deutsche-krimis-2026-im-vergleich",
+      "date": "2026-09-13",
+      "title": "ZDF Mediathek oder Netflix – deutsche Krimis 2026 im Vergleich"
+    },
+    {
+      "slug": "musikdokumentationen-im-stream-der-praktische-leitfaden",
+      "date": "2026-09-13",
+      "title": "Musikdokumentationen im Stream: Der praktische Leitfaden"
+    },
+    {
+      "slug": "prosiebensat-1-und-paramount-was-der-deal-fuers-streaming-bedeutet",
+      "date": "2026-09-13",
+      "title": "ProSiebenSat.1 und Paramount: Was der Deal fürs Streaming bedeutet"
+    },
+    {
+      "slug": "wo-laeuft-babylon-berlin-im-stream",
+      "date": "2026-09-13",
+      "title": "Wo läuft Babylon Berlin im Stream?"
+    },
+    {
+      "slug": "serie-ohne-neue-folgen-bei-paramount-was-jetzt",
+      "date": "2026-09-13",
+      "title": "Serie ohne neue Folgen bei Paramount+ – was jetzt?"
+    },
+    {
+      "slug": "sci-fi-oder-horror-auf-netflix-was-lohnt-sich-2026",
+      "date": "2026-09-13",
+      "title": "Sci-Fi oder Horror auf Netflix – was lohnt sich 2026?"
+    },
+    {
+      "slug": "7-preisgekroente-filme-fuer-einen-abend-ohne-langes-suchen",
+      "date": "2026-09-13",
+      "title": "7 preisgekrönte Filme für einen Abend ohne langes Suchen"
+    },
+    {
+      "slug": "the-hack-bei-arte-cyberthriller-im-stream-finden-und-einordnen",
+      "date": "2026-09-13",
+      "title": "The Hack bei Arte: Cyberthriller im Stream finden und einordnen"
+    },
+    {
+      "slug": "krimi-und-thriller-serien-fuer-den-abend-nach-dem-tatort",
+      "date": "2026-09-13",
+      "title": "Krimi- und Thriller-Serien für den Abend nach dem Tatort"
     }
   ],
   "usedTopics": [
@@ -385,7 +465,23 @@
     "bill-kaulitz-damals-und-heute-so-wurde-der-tokio-hotel-saenger-vom-tee",
     "stingray-startet-gleich-17-neue-musiksender-so-sind-sie-zu-empfangen",
     "heute-laeuft-ein-film-fuer-die-ewigkeit-im-tv-ich-habe-schon-in-der-sc",
-    "original-mit-untertiteln-oder-synchronfassung"
+    "original-mit-untertiteln-oder-synchronfassung",
+    "die-besten-filme-unter-100-minuten",
+    "ifa-2026-strong-bringt-neue-streaming-geraete-mit-4k-google-tv-und-gem",
+    "kampf-ums-wohnzimmer-plasma-oder-lcd-als-42-zoll-bei-flachbild-tvs-noc",
+    "the-split-bekommt-einen-ableger-neues-familiendrama-spielt-in-manchest",
+    "deutscher-fernsehpreis-verliehen-so-lief-der-abend",
+    "netflix-investiert-250-millionen-euro-in-frankreich-deutlich-mehr-als-",
+    "flop-besiegelt-rtl-nimmt-gladiators-aus-der-schusslinie",
+    "jenseits-der-spree-zdf-kuendigt-neue-folgen-der-krimiserie-an",
+    "film-der-woche-oasis-don-t-look-back-in-anger-biblisch-oder-verpasste-",
+    "prosiebensat-1-paramount-riesiger-neuer-content-deal",
+    "kommt-babylon-berlin-staffel-6-so-geht-es-nach-den-acht-neuen-folgen-i",
+    "von-dieser-serie-sehen-paramount-kunden-keine-neuen-folgen-mehr",
+    "obsession-fans-aufgepasst-bei-netflix-gibt-es-jetzt-die-sci-fi-version",
+    "venedig-2026-das-sind-die-gewinner-des-festivals",
+    "the-hack-bei-arte-dieser-thriller-passt-jetzt-erschreckend-gut-zur-ber",
+    "tatort-so-gut-ist-der-erste-krimi-nach-der-sommerpause"
   ],
-  "lastRun": "2026-09-13T09:37:26.564Z"
+  "lastRun": "2026-09-13T14:55:56.859Z"
 }
