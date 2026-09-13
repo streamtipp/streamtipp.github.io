@@ -9,6 +9,8 @@
   "postsPerDay": 2,
   "maxPostsOnIndex": 30,
   "autopush": true,
+  "modell": "sonnet",
+  "aufwand": "medium",
   "indexNowKey": "e8d347f00c9b6cc2b1ab15bd5666f26c",
   "verification": {
     "google": "YNavn73zHEd4WgMXgMnXPWODMgdqMjh_u0jbgTFCJxI",

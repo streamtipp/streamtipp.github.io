@@ -11,6 +11,7 @@
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { loadConfig } from './util.mjs';
 
 const MODEL = 'claude-opus-5';
 
@@ -138,6 +139,32 @@ export function schaetzung(historie, anzahl) {
   };
 }
 
+// Modell und Aufwand aus config/site.json. Ohne Angabe nimmt die CLI ihren
+// eigenen Standard, und der kann sich mit jedem Update aendern. Deshalb fest.
+//
+// Die Werte landen in einem Shell-Befehl. Darum nur Eintraege aus einer festen
+// Liste, alles andere wird ignoriert statt eingesetzt.
+const ERLAUBTE_MODELLE = new Set(['sonnet', 'opus', 'fable', 'haiku']);
+const ERLAUBTER_AUFWAND = new Set(['low', 'medium', 'high', 'xhigh', 'max']);
+
+export function modellEinstellung() {
+  let site = {};
+  try {
+    site = loadConfig('site.json');
+  } catch { /* ohne Konfiguration CLI-Standard */ }
+  const modell = String(site.modell || '').toLowerCase();
+  const aufwand = String(site.aufwand || '').toLowerCase();
+  return {
+    modell: ERLAUBTE_MODELLE.has(modell) ? modell : null,
+    aufwand: ERLAUBTER_AUFWAND.has(aufwand) ? aufwand : null,
+  };
+}
+
+function cliOptionen() {
+  const { modell, aufwand } = modellEinstellung();
+  return `${modell ? ` --model ${modell}` : ''}${aufwand ? ` --effort ${aufwand}` : ''}`;
+}
+
 function viaCli(prompt) {
   const bin = claudeBinaer();
 
@@ -145,7 +172,7 @@ function viaCli(prompt) {
   // Deshalb ein fertiger Kommandostring statt getrennter Argumente: so
   // bleibt der Aufruf identisch und Node warnt nicht wegen shell + args.
   // Der Prompt geht ueber stdin, nie ueber die Kommandozeile.
-  const command = `"${bin}" -p --output-format json`;
+  const command = `"${bin}" -p --output-format json${cliOptionen()}`;
 
   return new Promise((resolve, reject) => {
     const child = spawn(command, [], {

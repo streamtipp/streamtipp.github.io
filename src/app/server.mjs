@@ -11,7 +11,7 @@ import path from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { ROOT, paths, loadConfig, readPosts, log } from '../util.mjs';
-import { schaetzung } from '../llm.mjs';
+import { schaetzung, modellEinstellung } from '../llm.mjs';
 import { loadPerformance } from '../performance.mjs';
 import { loadWeights } from '../learn.mjs';
 import { offeneAenderungen, veroeffentlichen } from '../veroeffentlichen.mjs';
@@ -160,6 +160,7 @@ async function status() {
       adresse: site.baseUrl,
       proTag: site.postsPerDay,
       autopush: Boolean(site.autopush),
+      ...modellEinstellung(),
       affiliateAktiv: (() => { try { return loadConfig('affiliate.json').amazon.enabled; } catch { return false; } })(),
     },
     artikel: {

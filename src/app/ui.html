@@ -431,6 +431,8 @@ async function laden() {
     ? reihe('Status', esc(t.status || 'unbekannt'), true)
       + reihe('Nächster Lauf', esc(t.naechster || '-'))
       + reihe('Letzter Lauf', esc(t.letzter || '-'))
+      + reihe('Modell', esc(d.site.modell || 'CLI-Standard'))
+      + reihe('Aufwand', esc(d.site.aufwand || 'CLI-Standard'))
       + reihe('Beiträge pro Tag', Number(d.site.proTag || 0))
       + reihe('Automatisch hochladen', d.site.autopush ? 'an' : 'aus')
       + reihe('Affiliate-Links', d.site.affiliateAktiv ? 'an' : 'aus')
