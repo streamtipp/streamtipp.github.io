@@ -92,7 +92,7 @@ async function main() {
 
   await step('Seite bauen', async () => {
     const { build } = await import('./build.mjs');
-    build();
+    await build();
   }, journal);
 
   const ready = await step('Preflight', async () => {

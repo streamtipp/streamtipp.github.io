@@ -20,16 +20,9 @@ import path from 'node:path';
 import { renderMarkdown, plainExcerpt } from './markdown.mjs';
 import { injectAffiliates } from './affiliate.mjs';
 import { loadConfig, paths, readPosts, escapeHtml, log } from './util.mjs';
+import { ICONS, VARIANTEN, variante, glyphFor, FAVICON_SVG } from './design.mjs';
+import { vorschauenErzeugen, ogDatei, OG_ORDNER, ICON_ORDNER, OG_BREITE, OG_HOEHE } from './vorschau.mjs';
 
-const ICONS = {
-  ticket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4z"/><path d="M14.5 6.5v2M14.5 11v2M14.5 15.5v2"/></svg>',
-  buch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.8C10.4 5.5 8.2 4.9 4.5 5.2v13.3c3.7-.3 5.9.3 7.5 1.6 1.6-1.3 3.8-1.9 7.5-1.6V5.2c-3.7-.3-5.9.3-7.5 1.6z"/><path d="M12 6.8v13.3"/></svg>',
-  play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="12.5" rx="2"/><path d="M10.3 8.2v5.1l4.3-2.55z" fill="currentColor"/><path d="M8.5 20h7"/></svg>',
-  waage: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M8 20h8M5 7h14"/><path d="M5 7l-2.5 6a2.5 2.5 0 0 0 5 0z"/><path d="M19 7l-2.5 6a2.5 2.5 0 0 0 5 0z"/></svg>',
-  suche: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>',
-  sonne: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2M12 19.2v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2.8 12h2M19.2 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
-  mond: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.2A8 8 0 0 1 9.8 4 8 8 0 1 0 20 14.2z"/></svg>',
-};
 
 // Farben des dunklen Saals. Steht einmal hier und wird zweimal eingesetzt:
 // fuer die Systemeinstellung und fuer die ausdrueckliche Wahl per Knopf.
@@ -105,12 +98,7 @@ svg{display:block;max-width:100%}
 .cover .glyph{position:absolute;right:.7rem;bottom:-.3rem;font:800 clamp(3.2rem,2.2rem + 3vw,4.6rem)/1 var(--display);letter-spacing:-.03em;text-shadow:0 2px 24px rgba(0,0,0,.35)}
 .cover .glyph.ist-icon{bottom:.8rem;right:.9rem}
 .cover .glyph svg{width:2.5rem;height:2.5rem}
-.v0{--c1:#7a2236;--c2:#1c0a11}
-.v1{--c1:#47275d;--c2:#130a1b}
-.v2{--c1:#1d4a55;--c2:#081417}
-.v3{--c1:#7a4a19;--c2:#1d1008}
-.v4{--c1:#243466;--c2:#0a0d1c}
-.v5{--c1:#6e2e44;--c2:#200f16}
+${VARIANTEN.map(([c1, c2], i) => `.v${i}{--c1:${c1};--c2:${c2}}`).join('\n')}
 
 /* Kacheln */
 .karte{display:flex;flex-direction:column;gap:.65rem;min-width:0;text-decoration:none;color:inherit}
@@ -301,34 +289,6 @@ function markeHtml(titel) {
   return m ? `${escapeHtml(m[1])}<span>${escapeHtml(m[2])}</span>` : escapeHtml(titel);
 }
 
-function streuwert(text) {
-  let h = 2166136261;
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-function variante(slug) {
-  return streuwert(slug) % 6;
-}
-
-// Was auf dem Plakat steht: ein festes Symbol je Artikelform. Frueher stand bei
-// "7 Krimiserien" die Zahl, bei "Acht Buchverfilmungen" aber das Symbol, weil
-// das Modell Zahlen mal als Ziffer, mal als Wort schreibt. In einer Reihe sah
-// das zufaellig aus. Ein Symbol pro Kategorie ist immer einheitlich.
-const SYMBOL_JE_FORM = {
-  listicle: 'ticket',
-  vergleich: 'waage',
-  guide: 'buch',
-  'wo-streamen': 'play',
-};
-
-function glyphFor(post) {
-  return { t: 'i', w: SYMBOL_JE_FORM[post.meta.format] || 'ticket' };
-}
-
 function glyphHtml(g) {
   return g.t === 'i'
     ? `<span class="glyph ist-icon" aria-hidden="true">${ICONS[g.w] || ''}</span>`
@@ -369,8 +329,33 @@ function nav(defs, prefix, aktuell) {
   return `<nav class="kat-nav" aria-label="Kategorien">${links.join('')}</nav>`;
 }
 
-function layout(site, defs, { title, description, canonical, body, jsonLd, prefix = '', aktuell = '', script = '' }) {
+// Vorschaubild fuer geteilte Links: das eigene des Beitrags, sonst das der
+// Startseite. Nur Dateien, die wirklich existieren, damit nie ein Link auf ein
+// fehlendes Bild zeigt.
+function bildFuer(site, slug) {
+  if (slug && fs.existsSync(ogDatei(slug))) return { url: `${site.baseUrl}/og/${slug}.jpg`, eigenes: true };
+  if (fs.existsSync(ogDatei('_start'))) return { url: `${site.baseUrl}/og/_start.jpg`, eigenes: false };
+  return null;
+}
+
+function layout(site, defs, { title, description, canonical, body, jsonLd, prefix = '', aktuell = '', script = '', bild, bildAlt = '', ogTyp = 'website' }) {
   const start = prefix || './';
+  // Seiten ohne eigenes Bild, etwa Startseite, Kategorien und Suche, zeigen
+  // beim Teilen das Bild der Startseite.
+  if (bild === undefined) {
+    bild = bildFuer(site)?.url || null;
+    bildAlt = bildAlt || `${site.title}: ${site.tagline}`;
+  }
+  const bildMeta = bild
+    ? `<meta property="og:image" content="${bild}">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="${OG_BREITE}">
+<meta property="og:image:height" content="${OG_HOEHE}">
+<meta property="og:image:alt" content="${escapeHtml(bildAlt || title)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="${bild}">
+`
+    : '<meta name="twitter:card" content="summary">\n';
   return `<!doctype html>
 <html lang="${site.lang}">
 <head>
@@ -386,7 +371,15 @@ function layout(site, defs, { title, description, canonical, body, jsonLd, prefi
 <meta property="og:title" content="${escapeHtml(title)}">
 <meta property="og:description" content="${escapeHtml(description)}">
 <meta property="og:url" content="${canonical}">
-<meta property="og:type" content="website">
+<meta property="og:type" content="${ogTyp}">
+<meta property="og:site_name" content="${escapeHtml(site.title)}">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:title" content="${escapeHtml(title)}">
+<meta name="twitter:description" content="${escapeHtml(description)}">
+${bildMeta}<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="icon" href="${prefix}favicon.svg" type="image/svg+xml">
+<link rel="icon" href="${prefix}favicon-48.png" sizes="48x48" type="image/png">
+<link rel="apple-touch-icon" href="${prefix}apple-touch-icon.png">
 ${site.verification?.google ? `<meta name="google-site-verification" content="${escapeHtml(site.verification.google)}">\n` : ''}${site.verification?.bing ? `<meta name="msvalidate.01" content="${escapeHtml(site.verification.bing)}">\n` : ''}<script>${THEMA_KOPF}</script>
 <style>${CSS}</style>
 ${jsonLd ? `<script type="application/ld+json">${sicheresJson(jsonLd)}</script>` : ''}
@@ -471,6 +464,8 @@ ${verwandt.length ? `<section class="reihe verwandt" aria-labelledby="verwandt">
 </section>` : ''}
 <a class="zurueck" href="../">← Alle Beiträge</a>`;
 
+  const bild = bildFuer(site, post.slug);
+
   return layout(site, defs, {
     title: `${post.meta.title} - ${site.title}`,
     description: post.meta.description,
@@ -478,12 +473,16 @@ ${verwandt.length ? `<section class="reihe verwandt" aria-labelledby="verwandt">
     prefix: '../',
     aktuell: post.meta.format,
     body,
+    bild: bild?.url,
+    bildAlt: `${label}: ${post.meta.title}`,
+    ogTyp: 'article',
     jsonLd: [
       {
         '@context': 'https://schema.org',
         '@type': 'Article',
         headline: post.meta.title,
         description: post.meta.description,
+        ...(bild ? { image: [bild.url] } : {}),
         datePublished: post.meta.date,
         dateModified: post.meta.date,
         inLanguage: site.lang,
@@ -740,13 +739,34 @@ ${urls.map((u) => `  <url><loc>${u}</loc></url>`).join('\n')}
 </urlset>`;
 }
 
-export function build() {
+export async function build() {
   const site = loadConfig('site.json');
   const defs = formatDefs(loadConfig('niche.json'));
   const posts = readPosts();
 
+  // Zuerst die Bilder, damit die Seiten beim Bauen schon wissen, welche es gibt.
+  try {
+    await vorschauenErzeugen({ site, posts, labelFor: (id) => labelFor(defs, id) });
+  } catch (err) {
+    log('vorschau', `übersprungen: ${err.message}`);
+  }
+
   fs.rmSync(paths.dist, { recursive: true, force: true });
   fs.mkdirSync(paths.dist, { recursive: true });
+
+  // Vorschaubilder und Favicons in die Website kopieren.
+  if (fs.existsSync(OG_ORDNER)) {
+    fs.mkdirSync(path.join(paths.dist, 'og'), { recursive: true });
+    for (const f of fs.readdirSync(OG_ORDNER)) {
+      if (f.endsWith('.jpg')) fs.copyFileSync(path.join(OG_ORDNER, f), path.join(paths.dist, 'og', f));
+    }
+  }
+  fs.writeFileSync(path.join(paths.dist, 'favicon.svg'), FAVICON_SVG);
+  if (fs.existsSync(ICON_ORDNER)) {
+    for (const f of fs.readdirSync(ICON_ORDNER)) {
+      if (f.endsWith('.png')) fs.copyFileSync(path.join(ICON_ORDNER, f), path.join(paths.dist, f));
+    }
+  }
 
   fs.writeFileSync(path.join(paths.dist, 'index.html'), indexPage(site, defs, posts));
 

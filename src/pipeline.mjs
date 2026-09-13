@@ -29,7 +29,7 @@ async function main() {
   const count = Number(arg('count', site.postsPerDay)) || 1;
 
   if (buildOnly) {
-    build();
+    await build();
     // Der Exit-Code ist entscheidend: In GitHub Actions ist er das Einzige,
     // woran der Workflow einen fehlgeschlagenen Preflight erkennt. Ohne ihn
     // wuerde eine Seite ohne gueltiges Impressum trotzdem veroeffentlicht.
@@ -79,7 +79,7 @@ async function main() {
   state.lastRun = new Date().toISOString();
   saveState(state);
 
-  build();
+  await build();
   const ok = reportPreflight();
 
   await verbrauchSichern(written);
