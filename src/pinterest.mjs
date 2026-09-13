@@ -36,19 +36,25 @@ function kuerzen(text, max) {
   return `${schnitt.slice(0, Math.max(schnitt.lastIndexOf(' '), max - 20))}…`;
 }
 
+// Anfuehrungszeichen nur, wo sie noetig sind, so wie Excel exportiert. Die
+// erste Fassung setzte sie um jedes Feld, und Pinterest lehnte die Datei mit
+// "falsches Format" ab.
 function csvFeld(wert) {
-  return `"${String(wert ?? '').replace(/"/g, '""')}"`;
+  const t = String(wert ?? '');
+  return /[",\r\n]|^\s|\s$/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
 }
 
 function zweistellig(n) {
   return String(n).padStart(2, '0');
 }
 
-// Datum ohne Zeitzonenkennung, wie im Pinterest-Muster "2023-12-17T08:00:00".
-// Pinterest legt es in der Zeitzone des Kontos aus.
+// Format wie im Pinterest-Muster "2023-12-17T08:00:00". Laut Hilfe liest
+// Pinterest die Zeit als UTC. Die Uhrzeiten in der Konfiguration sind aber
+// lokale Zeit, also hier umrechnen: 18:30 in Wien ist im Sommer 16:30 UTC.
 function termin(tag, uhrzeit) {
   const [h, m] = String(uhrzeit).split(':').map(Number);
-  return `${tag.getFullYear()}-${zweistellig(tag.getMonth() + 1)}-${zweistellig(tag.getDate())}T${zweistellig(h || 0)}:${zweistellig(m || 0)}:00`;
+  const lokal = new Date(tag.getFullYear(), tag.getMonth(), tag.getDate(), h || 0, m || 0, 0);
+  return lokal.toISOString().slice(0, 19);
 }
 
 async function online(url) {
@@ -123,7 +129,7 @@ export async function pinterestExport({ trocken = false } = {}) {
   let start = new Date(heute);
   start.setDate(start.getDate() + 1);
   if (stand.letzterTermin) {
-    const nachLetztem = new Date(stand.letzterTermin);
+    const nachLetztem = new Date(String(stand.letzterTermin).endsWith('Z') ? stand.letzterTermin : `${stand.letzterTermin}Z`);
     nachLetztem.setHours(0, 0, 0, 0);
     nachLetztem.setDate(nachLetztem.getDate() + 1);
     if (nachLetztem > start) start = nachLetztem;

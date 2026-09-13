@@ -1,5 +1,5 @@
 {
-  "hinweis": "Pinnwaende muessen bei Pinterest nicht vorher existieren, sie werden beim Hochladen der CSV angelegt. Uhrzeiten gelten in der Zeitzone deines Pinterest-Kontos.",
+  "hinweis": "Pinnwaende muessen bei Pinterest nicht vorher existieren, sie werden beim Hochladen der CSV angelegt. Uhrzeiten sind Ortszeit dieses PCs, beim Export werden sie in UTC umgerechnet, weil Pinterest das Datum als UTC liest.",
   "pinnwaende": {
     "listicle": "Filmtipps für heute Abend",
     "vergleich": "Streaming und Heimkino im Vergleich",
