@@ -38,5 +38,13 @@
     "outputTokens": 71896,
     "cacheReadTokens": 1290400,
     "kostenGegenwert": 1.9288
+  },
+  {
+    "zeit": "2026-09-13T16:13:01.606Z",
+    "artikel": 38,
+    "aufrufe": 50,
+    "outputTokens": 154694,
+    "cacheReadTokens": 2432227,
+    "kostenGegenwert": 3.7006
   }
 ]
