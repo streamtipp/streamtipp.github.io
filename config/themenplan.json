@@ -1,55 +1,216 @@
 {
   "hinweis": "Eigener Themenplan. Er hat Vorrang vor den RSS-Feeds. Erst wenn alles hier abgearbeitet ist, faellt die Pipeline auf Tagesmeldungen zurueck. Saisonales gewinnt gegen Zeitloses, solange sein Fenster offen ist.",
-
   "saisonal": [
-    { "titel": "Gruselfilme, die nicht zu brutal sind", "form": "listicle", "ab": "09-10", "bis": "10-31", "anlass": "Halloween" },
-    { "titel": "Horrorserien fuer den Oktober", "form": "listicle", "ab": "09-20", "bis": "10-31", "anlass": "Halloween" },
-    { "titel": "Serien fuer lange Herbstabende", "form": "listicle", "ab": "09-15", "bis": "11-15", "anlass": "Herbst" },
-    { "titel": "Weihnachtsfilme fuer Leute, die keine Weihnachtsfilme moegen", "form": "listicle", "ab": "10-25", "bis": "12-26", "anlass": "Weihnachten" },
-    { "titel": "Die besten Weihnachtsserien", "form": "listicle", "ab": "11-01", "bis": "12-26", "anlass": "Weihnachten" },
-    { "titel": "Die besten Filme des Jahres", "form": "listicle", "ab": "11-15", "bis": "12-31", "anlass": "Jahresrueckblick" },
-    { "titel": "Filme fuer den Jahreswechsel", "form": "listicle", "ab": "12-10", "bis": "12-31", "anlass": "Silvester" },
-    { "titel": "Top 10 Liebesfilme fuer den Valentinstag", "form": "listicle", "ab": "01-10", "bis": "02-14", "anlass": "Valentinstag" },
-    { "titel": "Romantische Komoedien, die nicht kitschig sind", "form": "listicle", "ab": "01-15", "bis": "02-14", "anlass": "Valentinstag" },
-    { "titel": "Filme fuer die Osterfeiertage", "form": "listicle", "ab": "03-10", "bis": "04-15", "anlass": "Ostern" },
-    { "titel": "Filme fuer heisse Sommerabende", "form": "listicle", "ab": "06-01", "bis": "08-31", "anlass": "Sommer" }
+    {
+      "titel": "Gruselfilme, die nicht zu brutal sind",
+      "form": "listicle",
+      "ab": "09-10",
+      "bis": "10-31",
+      "anlass": "Halloween"
+    },
+    {
+      "titel": "Horrorserien für den Oktober",
+      "form": "listicle",
+      "ab": "09-20",
+      "bis": "10-31",
+      "anlass": "Halloween"
+    },
+    {
+      "titel": "Serien für lange Herbstabende",
+      "form": "listicle",
+      "ab": "09-15",
+      "bis": "11-15",
+      "anlass": "Herbst"
+    },
+    {
+      "titel": "Weihnachtsfilme für Leute, die keine Weihnachtsfilme mögen",
+      "form": "listicle",
+      "ab": "10-25",
+      "bis": "12-26",
+      "anlass": "Weihnachten"
+    },
+    {
+      "titel": "Die besten Weihnachtsserien",
+      "form": "listicle",
+      "ab": "11-01",
+      "bis": "12-26",
+      "anlass": "Weihnachten"
+    },
+    {
+      "titel": "Die besten Filme des Jahres",
+      "form": "listicle",
+      "ab": "11-15",
+      "bis": "12-31",
+      "anlass": "Jahresrückblick"
+    },
+    {
+      "titel": "Filme für den Jahreswechsel",
+      "form": "listicle",
+      "ab": "12-10",
+      "bis": "12-31",
+      "anlass": "Silvester"
+    },
+    {
+      "titel": "Top 10 Liebesfilme für den Valentinstag",
+      "form": "listicle",
+      "ab": "01-10",
+      "bis": "02-14",
+      "anlass": "Valentinstag"
+    },
+    {
+      "titel": "Romantische Komödien, die nicht kitschig sind",
+      "form": "listicle",
+      "ab": "01-15",
+      "bis": "02-14",
+      "anlass": "Valentinstag"
+    },
+    {
+      "titel": "Filme für die Osterfeiertage",
+      "form": "listicle",
+      "ab": "03-10",
+      "bis": "04-15",
+      "anlass": "Ostern"
+    },
+    {
+      "titel": "Filme für heiße Sommerabende",
+      "form": "listicle",
+      "ab": "06-01",
+      "bis": "08-31",
+      "anlass": "Sommer"
+    }
   ],
-
   "evergreen": [
-    { "titel": "Filme fuer den Abend zu zweit", "form": "listicle" },
-    { "titel": "Filme fuer ein erstes Date", "form": "listicle" },
-    { "titel": "Filme fuer einen verregneten Sonntag", "form": "listicle" },
-    { "titel": "Komoedien zum Abschalten nach einem langen Tag", "form": "listicle" },
-    { "titel": "Die besten Filme unter 100 Minuten", "form": "listicle" },
-    { "titel": "Serien mit nur einer Staffel", "form": "listicle" },
-    { "titel": "Serien, die ab der ersten Folge funktionieren", "form": "listicle" },
-    { "titel": "Serien zum Nebenbeischauen", "form": "listicle" },
-    { "titel": "Filme mit einem Ende, das alles umdreht", "form": "listicle" },
-    { "titel": "Filme, die beim zweiten Mal besser werden", "form": "listicle" },
-    { "titel": "Die besten Heist-Filme", "form": "listicle" },
-    { "titel": "Zeitreise-Filme, die logisch bleiben", "form": "listicle" },
-    { "titel": "Gerichtsfilme mit echter Spannung", "form": "listicle" },
-    { "titel": "Die besten Buchverfilmungen", "form": "listicle" },
-    { "titel": "Dokumentationen, die haengen bleiben", "form": "listicle" },
-    { "titel": "Filme fuer den Familienabend mit groesseren Kindern", "form": "listicle" },
-    { "titel": "Filme, die ohne viel Dialog auskommen", "form": "listicle" },
-    { "titel": "Serien, die man nach zwei Folgen abbrechen darf", "form": "listicle" },
-
-    { "titel": "Welches Streaming-Abo lohnt sich fuer wen?", "form": "vergleich" },
-    { "titel": "Beamer oder Fernseher fuers Wohnzimmer?", "form": "vergleich" },
-    { "titel": "Soundbar oder Surround-Set?", "form": "vergleich" },
-    { "titel": "Original mit Untertiteln oder Synchronfassung?", "form": "vergleich" },
-    { "titel": "Blu-ray kaufen oder streamen?", "form": "vergleich" },
-    { "titel": "Streaming-Stick oder die App im Fernseher?", "form": "vergleich" },
-    { "titel": "Grosser Fernseher oder naeher dransitzen?", "form": "vergleich" },
-
-    { "titel": "Heimkino unter 500 Euro einrichten", "form": "guide" },
-    { "titel": "Dolby Atmos zu Hause: Der praktische Leitfaden", "form": "guide" },
-    { "titel": "Bildeinstellungen am Fernseher richtig setzen", "form": "guide" },
-    { "titel": "Streaming ohne Ruckler: Der praktische Leitfaden", "form": "guide" },
-    { "titel": "Untertitel richtig einstellen", "form": "guide" },
-    { "titel": "Mediatheken in Deutschland und Oesterreich", "form": "guide" },
-    { "titel": "Den richtigen Sitzabstand zum Fernseher finden", "form": "guide" },
-    { "titel": "Ein Abo teilen, ohne die Regeln zu brechen", "form": "guide" }
+    {
+      "titel": "Filme für den Abend zu zweit",
+      "form": "listicle"
+    },
+    {
+      "titel": "Filme für ein erstes Date",
+      "form": "listicle"
+    },
+    {
+      "titel": "Filme für einen verregneten Sonntag",
+      "form": "listicle"
+    },
+    {
+      "titel": "Komödien zum Abschalten nach einem langen Tag",
+      "form": "listicle"
+    },
+    {
+      "titel": "Die besten Filme unter 100 Minuten",
+      "form": "listicle"
+    },
+    {
+      "titel": "Serien mit nur einer Staffel",
+      "form": "listicle"
+    },
+    {
+      "titel": "Serien, die ab der ersten Folge funktionieren",
+      "form": "listicle"
+    },
+    {
+      "titel": "Serien zum Nebenbeischauen",
+      "form": "listicle"
+    },
+    {
+      "titel": "Filme mit einem Ende, das alles umdreht",
+      "form": "listicle"
+    },
+    {
+      "titel": "Filme, die beim zweiten Mal besser werden",
+      "form": "listicle"
+    },
+    {
+      "titel": "Die besten Heist-Filme",
+      "form": "listicle"
+    },
+    {
+      "titel": "Zeitreise-Filme, die logisch bleiben",
+      "form": "listicle"
+    },
+    {
+      "titel": "Gerichtsfilme mit echter Spannung",
+      "form": "listicle"
+    },
+    {
+      "titel": "Die besten Buchverfilmungen",
+      "form": "listicle"
+    },
+    {
+      "titel": "Dokumentationen, die hängen bleiben",
+      "form": "listicle"
+    },
+    {
+      "titel": "Filme für den Familienabend mit größeren Kindern",
+      "form": "listicle"
+    },
+    {
+      "titel": "Filme, die ohne viel Dialog auskommen",
+      "form": "listicle"
+    },
+    {
+      "titel": "Serien, die man nach zwei Folgen abbrechen darf",
+      "form": "listicle"
+    },
+    {
+      "titel": "Welches Streaming-Abo lohnt sich für wen?",
+      "form": "vergleich"
+    },
+    {
+      "titel": "Beamer oder Fernseher fürs Wohnzimmer?",
+      "form": "vergleich"
+    },
+    {
+      "titel": "Soundbar oder Surround-Set?",
+      "form": "vergleich"
+    },
+    {
+      "titel": "Original mit Untertiteln oder Synchronfassung?",
+      "form": "vergleich"
+    },
+    {
+      "titel": "Blu-ray kaufen oder streamen?",
+      "form": "vergleich"
+    },
+    {
+      "titel": "Streaming-Stick oder die App im Fernseher?",
+      "form": "vergleich"
+    },
+    {
+      "titel": "Großer Fernseher oder näher dransitzen?",
+      "form": "vergleich"
+    },
+    {
+      "titel": "Heimkino unter 500 Euro einrichten",
+      "form": "guide"
+    },
+    {
+      "titel": "Dolby Atmos zu Hause: Der praktische Leitfaden",
+      "form": "guide"
+    },
+    {
+      "titel": "Bildeinstellungen am Fernseher richtig setzen",
+      "form": "guide"
+    },
+    {
+      "titel": "Streaming ohne Ruckler: Der praktische Leitfaden",
+      "form": "guide"
+    },
+    {
+      "titel": "Untertitel richtig einstellen",
+      "form": "guide"
+    },
+    {
+      "titel": "Mediatheken in Deutschland und Österreich",
+      "form": "guide"
+    },
+    {
+      "titel": "Den richtigen Sitzabstand zum Fernseher finden",
+      "form": "guide"
+    },
+    {
+      "titel": "Ein Abo teilen, ohne die Regeln zu brechen",
+      "form": "guide"
+    }
   ]
 }

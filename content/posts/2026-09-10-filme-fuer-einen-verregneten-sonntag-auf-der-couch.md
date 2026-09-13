@@ -1,7 +1,7 @@
 ---
 title: Filme für einen verregneten Sonntag auf der Couch
 description: Acht Filme für graue Sonntage, die Stimmung machen statt Zeit zu fressen, von leiser Komödie bis warmherzigem Drama.
-tags: [Filme, Komoedie, Heimkino]
+tags: [Filme, Komödie, Heimkino]
 date: 2026-09-10
 slug: filme-fuer-einen-verregneten-sonntag-auf-der-couch
 source: plan

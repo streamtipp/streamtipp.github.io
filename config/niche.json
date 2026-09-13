@@ -4,10 +4,34 @@
   "voice": "direkt, konkret, ohne Werbesprache. Kurze Saetze. Keine Superlative ohne Begruendung.",
   "wordTarget": 900,
   "formats": [
-    { "id": "listicle", "label": "Listen", "hinweis": "Empfehlungen zum Durchgehen", "pattern": "{n} {thing} fuer {occasion}", "weight": 3 },
-    { "id": "vergleich", "label": "Vergleiche", "hinweis": "Zwei Optionen gegenuebergestellt", "pattern": "{a} oder {b} - was lohnt sich {year}?", "weight": 2 },
-    { "id": "guide", "label": "Leitfaeden", "hinweis": "Ein Thema von Grund auf", "pattern": "{thing}: Der praktische Leitfaden", "weight": 2 },
-    { "id": "wo-streamen", "label": "Wo laeuft was", "hinweis": "Wo ein Titel zu finden ist", "pattern": "Wo laeuft {thing} im Stream?", "weight": 3 }
+    {
+      "id": "listicle",
+      "label": "Listen",
+      "hinweis": "Empfehlungen zum Durchgehen",
+      "pattern": "{n} {thing} fuer {occasion}",
+      "weight": 3
+    },
+    {
+      "id": "vergleich",
+      "label": "Vergleiche",
+      "hinweis": "Zwei Optionen gegenübergestellt",
+      "pattern": "{a} oder {b} - was lohnt sich {year}?",
+      "weight": 2
+    },
+    {
+      "id": "guide",
+      "label": "Leitfäden",
+      "hinweis": "Ein Thema von Grund auf",
+      "pattern": "{thing}: Der praktische Leitfaden",
+      "weight": 2
+    },
+    {
+      "id": "wo-streamen",
+      "label": "Wo läuft was",
+      "hinweis": "Wo ein Titel zu finden ist",
+      "pattern": "Wo laeuft {thing} im Stream?",
+      "weight": 3
+    }
   ],
   "themen": [
     "Streaming",
@@ -18,7 +42,7 @@
     "Klassiker",
     "Krimi und Thriller",
     "Action",
-    "Komoedie",
+    "Komödie",
     "Doku",
     "Familie",
     "Neu im Stream"

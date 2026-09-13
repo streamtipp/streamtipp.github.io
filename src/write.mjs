@@ -37,6 +37,10 @@ ist eine Richtung, keine Schablone. Haenge es nicht woertlich an den Titel.
 ${themenBlock}
 
 Regeln:
+- Schreibe korrektes Deutsch mit Umlauten und scharfem S: ä, ö, ü, Ä, Ö, Ü, ß.
+  Diese Anweisung ist aus technischen Gruenden ohne Umlaute formuliert, das
+  gilt ausdruecklich nicht fuer deinen Text. "fuer", "ueber" oder "Komoedie"
+  im Artikel sind Fehler.
 - Der Titel muss konkret sein. Umschreibungen wie "die neue Serie" oder "der
   Nachfolger" sind verboten. Wenn du den Titel eines Films oder einer Serie
   nicht sicher kennst, waehle eine allgemeinere Ueberschrift statt einer vagen.
@@ -93,9 +97,16 @@ export function normalizeTags(raw, erlaubt) {
 
 function validate(meta, body) {
   const problems = [];
+  const woerter = body.split(/\s+/).length;
   for (const f of REQUIRED_FIELDS) if (!meta[f]) problems.push(`Feld "${f}" fehlt`);
   if (meta.title && meta.title.length > 90) problems.push('Titel zu lang');
-  if (body.split(/\s+/).length < 250) problems.push('Text zu kurz');
+  if (woerter < 250) problems.push('Text zu kurz');
+
+  // Ein deutscher Text mit mehreren hundert Woertern ohne einen einzigen
+  // Umlaut kommt praktisch nicht vor. Wenn doch, hat das Modell "ae", "oe",
+  // "ue" geschrieben, und das sieht fuer Leser kaputt aus.
+  const umlaute = (`${meta.title || ''} ${meta.description || ''} ${body}`.match(/[äöüÄÖÜß]/g) || []).length;
+  if (woerter >= 250 && umlaute < woerter / 60) problems.push(`Kaum Umlaute (${umlaute} bei ${woerter} Woertern)`);
   if (/<script|<iframe|javascript:/i.test(body)) problems.push('Aktives HTML im Text');
   return problems;
 }

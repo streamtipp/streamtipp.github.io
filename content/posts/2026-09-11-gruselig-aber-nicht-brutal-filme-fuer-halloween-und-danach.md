@@ -1,7 +1,7 @@
 ---
 title: Gruselig, aber nicht brutal: Filme für Halloween und danach
 description: Acht Filme, die mit Atmosphäre statt mit Blut arbeiten – für Abende, an denen du dich gruseln, aber danach noch schlafen willst.
-tags: [Filme, Klassiker, Komoedie]
+tags: [Filme, Klassiker, Komödie]
 date: 2026-09-11
 slug: gruselig-aber-nicht-brutal-filme-fuer-halloween-und-danach
 source: plan
