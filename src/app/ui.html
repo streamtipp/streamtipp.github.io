@@ -21,7 +21,7 @@ header{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;justify-content
 header h1{font-size:1.25rem;margin:0;letter-spacing:-.01em}
 header .rechts{display:flex;gap:.6rem;align-items:center;font-size:.85rem;color:var(--gedaempft)}
 .punkt{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:.4rem}
-.punkt.an{background:var(--gut)} .punkt.aus{background:var(--schlecht)}
+.punkt.an{background:var(--gut)} .punkt.aus{background:var(--schlecht)} .punkt.warn{background:var(--warn)}
 a{color:var(--akzent)}
 
 .gitter{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem}
@@ -38,31 +38,46 @@ a{color:var(--akzent)}
 .reihe span:last-child{color:var(--gedaempft);font-variant-numeric:tabular-nums;white-space:nowrap}
 .reihe.stark span:last-child{color:var(--text);font-weight:600}
 
-/* Aktionskarte */
+/* Aktionsbereich: Erzeugen links, Veroeffentlichen rechts, Protokoll darunter */
 .aktion{grid-column:1/-1;background:linear-gradient(180deg,var(--karte2),var(--karte))}
+.bereiche{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:1.4rem}
+@media (max-width:860px){.bereiche{grid-template-columns:minmax(0,1fr)}}
+.bereich + .bereich{border-left:1px solid var(--linie);padding-left:1.4rem}
+@media (max-width:860px){.bereich + .bereich{border-left:0;padding-left:0;border-top:1px solid var(--linie);padding-top:1.2rem}}
+
 .steuerung{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center}
 button{font:inherit;font-weight:600;color:#1b1524;background:var(--akzent);border:0;
   border-radius:9px;padding:.62rem 1.15rem;cursor:pointer}
 button:hover{filter:brightness(1.08)}
 button:disabled{opacity:.45;cursor:not-allowed;filter:none}
 button.zweit{background:var(--karte2);color:var(--text);border:1px solid var(--linie)}
+button.gruen{background:var(--gut)}
+button.bestaetigen{background:var(--warn)}
 input[type=number]{font:inherit;width:5.5rem;padding:.58rem .7rem;border-radius:9px;
   background:var(--bg);border:1px solid var(--linie);color:var(--text);text-align:center}
 input[type=number]:focus{outline:2px solid var(--akzent);outline-offset:1px}
 
 .schaetzung{margin-top:1rem;padding:.85rem 1rem;background:var(--bg);border:1px solid var(--linie);
-  border-radius:10px;display:flex;flex-wrap:wrap;gap:1.6rem}
-.schaetzung div{min-width:7rem}
+  border-radius:10px;display:flex;flex-wrap:wrap;gap:1.4rem}
+.schaetzung div{min-width:6.5rem}
 .schaetzung .wert{font-size:1.15rem;font-weight:600;font-variant-numeric:tabular-nums}
 .schaetzung .titel{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--gedaempft)}
 .hinweis{font-size:.82rem;color:var(--gedaempft);margin-top:.7rem}
 
-#protokoll{margin-top:1rem;background:#100e15;border:1px solid var(--linie);border-radius:10px;
-  padding:.8rem 1rem;max-height:15rem;overflow-y:auto;font-family:"Cascadia Mono",Consolas,monospace;
+.offen{margin:0 0 .9rem;padding:.85rem 1rem;border-radius:10px;background:var(--bg);border:1px solid var(--linie)}
+.offen .wert{font-size:1.5rem;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums}
+.offen .wert small{font-size:.85rem;font-weight:400;color:var(--gedaempft);margin-left:.3rem}
+.offen ul{margin:.55rem 0 0;padding-left:1.1rem;color:var(--gedaempft);font-size:.83rem}
+.offen li{margin:.15rem 0}
+.offen.fertig .wert{color:var(--gut)}
+
+#protokoll{margin-top:1.2rem;background:#100e15;border:1px solid var(--linie);border-radius:10px;
+  padding:.8rem 1rem;max-height:16rem;overflow-y:auto;font-family:"Cascadia Mono",Consolas,monospace;
   font-size:.8rem;line-height:1.6;white-space:pre-wrap;display:none}
 #protokoll.sichtbar{display:block}
 #protokoll .fehler{color:var(--schlecht)}
 #protokoll .gut{color:var(--gut)}
+#protokoll .live{color:var(--gut);font-weight:700}
 
 .leer{color:var(--gedaempft);font-size:.88rem}
 .markierung{display:inline-block;padding:.08rem .5rem;border-radius:999px;background:var(--karte2);
@@ -78,8 +93,8 @@ footer{margin-top:1.6rem;color:var(--gedaempft);font-size:.8rem;text-align:cente
 <header>
   <h1 id="titel">Steuerung</h1>
   <div class="rechts">
-    <span id="livestatus"><span class="punkt aus"></span>pruefe ...</span>
-    <a id="seitenlink" href="#" target="_blank">Seite oeffnen</a>
+    <span id="livestatus"><span class="punkt warn"></span>prüfe …</span>
+    <a id="seitenlink" href="#" target="_blank" rel="noopener">Seite öffnen</a>
     <button class="zweit" id="neuladen" style="padding:.35rem .8rem;font-size:.82rem">Aktualisieren</button>
   </div>
 </header>
@@ -87,40 +102,43 @@ footer{margin-top:1.6rem;color:var(--gedaempft);font-size:.8rem;text-align:cente
 <div class="gitter">
 
   <section class="karte aktion">
-    <h2>Beitraege erzeugen</h2>
-    <div class="steuerung">
-      <button id="plus1">+1 Beitrag</button>
-      <input type="number" id="anzahl" min="1" max="50" value="5">
-      <button id="starten">Diese Anzahl erzeugen</button>
-      <button class="zweit" id="plus5">+5</button>
-      <button class="zweit" id="plus10">+10</button>
-    </div>
+    <div class="bereiche">
 
-    <div class="schaetzung">
-      <div>
-        <div class="titel">Verbrauch geschaetzt</div>
-        <div class="wert" id="s_kosten">-</div>
+      <div class="bereich">
+        <h2>Beiträge erzeugen</h2>
+        <div class="steuerung">
+          <button id="plus1" data-aktion>+1 Beitrag</button>
+          <input type="number" id="anzahl" min="1" max="50" value="5" aria-label="Anzahl Beiträge">
+          <button id="starten" data-aktion>Diese Anzahl erzeugen</button>
+          <button class="zweit" id="plus5" data-aktion>+5</button>
+          <button class="zweit" id="plus10" data-aktion>+10</button>
+        </div>
+        <div class="schaetzung">
+          <div><div class="titel">Verbrauch geschätzt</div><div class="wert" id="s_kosten">-</div></div>
+          <div><div class="titel">Ausgabe-Token</div><div class="wert" id="s_tokens">-</div></div>
+          <div><div class="titel">Dauer etwa</div><div class="wert" id="s_dauer">-</div></div>
+          <div><div class="titel">Je Beitrag</div><div class="wert" id="s_je">-</div></div>
+        </div>
+        <p class="hinweis" id="s_basis"></p>
       </div>
-      <div>
-        <div class="titel">Ausgabe-Token</div>
-        <div class="wert" id="s_tokens">-</div>
+
+      <div class="bereich">
+        <h2>Veröffentlichen</h2>
+        <div class="offen" id="offen"><div class="wert">…</div></div>
+        <div class="steuerung">
+          <button class="gruen" id="veroeffentlichen" data-aktion>Jetzt veröffentlichen</button>
+          <button class="zweit" id="pruefen" data-aktion>Nur prüfen</button>
+        </div>
+        <p class="hinweis">Baut die Seite, prüft Impressum und Datenschutz, lädt zu GitHub hoch, wartet auf den Deploy und meldet neue Adressen bei Bing.</p>
       </div>
-      <div>
-        <div class="titel">Dauer etwa</div>
-        <div class="wert" id="s_dauer">-</div>
-      </div>
-      <div>
-        <div class="titel">Je Beitrag</div>
-        <div class="wert" id="s_je">-</div>
-      </div>
+
     </div>
-    <p class="hinweis" id="s_basis"></p>
-    <div id="protokoll"></div>
+    <div id="protokoll" aria-live="polite"></div>
   </section>
 
   <section class="karte">
     <h2>Bestand</h2>
-    <div class="zahl" id="a_gesamt">-<small>Beitraege</small></div>
+    <div class="zahl" id="a_gesamt">-<small>Beiträge</small></div>
     <div class="unter" id="a_woerter"></div>
     <div style="margin-top:.9rem" id="a_kategorien"></div>
   </section>
@@ -161,6 +179,13 @@ footer{margin-top:1.6rem;color:var(--gedaempft);font-size:.8rem;text-align:cente
 const $ = (id) => document.getElementById(id);
 const zahl = (n, s = 0) => Number(n || 0).toLocaleString('de-DE', { minimumFractionDigits: s, maximumFractionDigits: s });
 
+// Titel stammen vom Sprachmodell, und das verarbeitet fremde Feed-Texte. Alles,
+// was per innerHTML eingefuegt wird, geht deshalb durch esc(). Sonst koennte ein
+// praeparierter Titel hier Code ausfuehren, und diese Seite kann veroeffentlichen.
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 function reihe(links, rechts, stark) {
   return '<div class="reihe' + (stark ? ' stark' : '') + '"><span>' + links + '</span><span>' + rechts + '</span></div>';
 }
@@ -173,103 +198,229 @@ async function schaetzen() {
     $('s_tokens').textContent = zahl(s.tokens);
     $('s_dauer').textContent = Math.max(1, Math.round(n * 62 / 60)) + ' Min';
     $('s_je').textContent = zahl(s.proArtikel.kosten, 3) + ' USD';
-    $('s_basis').textContent = 'Grundlage der Schaetzung: ' + s.basis
+    $('s_basis').textContent = 'Grundlage der Schätzung: ' + s.basis
       + '. Der Betrag wird nicht abgerechnet, er zeigt nur, wie stark der Lauf ins Kontingent deines Abos greift.';
-  } catch { $('s_basis').textContent = 'Schaetzung nicht verfuegbar.'; }
+  } catch { $('s_basis').textContent = 'Schätzung nicht verfügbar.'; }
 }
 
-function protokollZeile(text) {
+function protokollZeile(text, klasse) {
   const p = $('protokoll');
   p.classList.add('sichtbar');
   const z = document.createElement('div');
-  if (/fehlgeschlagen|fehler|abbruch|block/i.test(text)) z.className = 'fehler';
-  else if (/\[ok\]|\[done\]|\[write\]/i.test(text)) z.className = 'gut';
+  if (klasse) z.className = klasse;
+  else if (/fehlgeschlagen|fehler|abgebrochen|abbruch|\[block\]/i.test(text)) z.className = 'fehler';
+  else if (/\[ok\]|\[done\]|\[write\]|erfolgreich|hochgeladen|gemeldet/i.test(text)) z.className = 'gut';
   z.textContent = text;
   p.appendChild(z);
   p.scrollTop = p.scrollHeight;
 }
 
-let laeuft = false;
-function starten(n) {
-  if (laeuft) return;
-  laeuft = true;
-  for (const b of document.querySelectorAll('button')) b.disabled = true;
-  $('protokoll').innerHTML = '';
-  protokollZeile('Starte ' + n + ' Beitrag' + (n === 1 ? '' : 'e') + ' ...');
+// Aktionen laufen per POST mit eigenem Kopf. Ein EventSource waere einfacher,
+// verbindet sich aber bei einem Abbruch von selbst neu, und das wuerde hier
+// einen zweiten Lauf ausloesen.
+async function streamen(url, beiEreignis) {
+  let antwort;
+  try {
+    antwort = await fetch(url, { method: 'POST', headers: { 'x-streamtipp': '1' } });
+  } catch (err) {
+    protokollZeile('Server nicht erreichbar: ' + err.message);
+    return 1;
+  }
+  if (!antwort.ok || !antwort.body) {
+    let text = 'Anfrage abgelehnt (HTTP ' + antwort.status + ')';
+    try { const j = await antwort.json(); if (j.fehler) text = j.fehler; } catch {}
+    protokollZeile(text);
+    return 1;
+  }
 
-  const q = new EventSource('/api/erzeugen?anzahl=' + n);
-  q.addEventListener('zeile', (e) => protokollZeile(JSON.parse(e.data).text));
-  q.addEventListener('fertig', (e) => {
-    const code = JSON.parse(e.data).code;
-    protokollZeile(code === 0 ? 'Fertig.' : 'Beendet mit Code ' + code + '.');
-    q.close();
-    laeuft = false;
-    for (const b of document.querySelectorAll('button')) b.disabled = false;
-    laden();
-    schaetzen();
+  const leser = antwort.body.getReader();
+  const dec = new TextDecoder();
+  let puffer = '';
+  let code = 1;
+  while (true) {
+    const { done, value } = await leser.read();
+    if (done) break;
+    puffer += dec.decode(value, { stream: true });
+    const bloecke = puffer.split('\n\n');
+    puffer = bloecke.pop();
+    for (const b of bloecke) {
+      const typ = (b.match(/^event: (.+)$/m) || [])[1];
+      const roh = (b.match(/^data: (.+)$/m) || [])[1];
+      if (!typ || !roh) continue;
+      const daten = JSON.parse(roh);
+      if (typ === 'zeile') protokollZeile(daten.text);
+      else if (typ === 'fertig') code = daten.code;
+      else if (beiEreignis) beiEreignis(typ, daten);
+    }
+  }
+  return code;
+}
+
+let laeuft = false;
+function sperren(an) {
+  laeuft = an;
+  for (const b of document.querySelectorAll('[data-aktion]')) b.disabled = an;
+  if (!an) offenAnzeigen(letzterStatus);
+}
+
+async function erzeugen(n) {
+  if (laeuft) return;
+  sperren(true);
+  $('protokoll').innerHTML = '';
+  protokollZeile('Starte ' + n + ' Beitrag' + (n === 1 ? '' : 'e') + ' …');
+  const code = await streamen('/api/erzeugen?anzahl=' + n);
+  protokollZeile(code === 0 ? 'Fertig. Die Beiträge sind lokal gespeichert, aber noch nicht online. Zum Hochladen auf „Jetzt veröffentlichen“ klicken.' : 'Beendet mit Code ' + code + '.');
+  sperren(false);
+  laden();
+  schaetzen();
+}
+
+async function veroeffentlichen(probe) {
+  if (laeuft) return;
+  sperren(true);
+  $('protokoll').innerHTML = '';
+  protokollZeile(probe ? 'Prüfe, ohne etwas hochzuladen …' : 'Veröffentliche …');
+  const code = await streamen('/api/veroeffentlichen' + (probe ? '?probe=1' : ''), (typ, d) => {
+    if (typ === 'live') {
+      protokollZeile('Online: ' + d.adresse, 'live');
+    }
   });
-  q.onerror = () => {
-    protokollZeile('Verbindung unterbrochen.');
-    q.close();
-    laeuft = false;
-    for (const b of document.querySelectorAll('button')) b.disabled = false;
-  };
+  if (code !== 0) protokollZeile('Nicht abgeschlossen, siehe Meldungen oben.');
+  sperren(false);
+  laden();
+}
+
+// Zweistufiger Klick: Veroeffentlichen ist oeffentlich und nicht rueckgaengig
+// zu machen. Der erste Klick fragt nach, der zweite innerhalb von fuenf
+// Sekunden fuehrt aus.
+let bestaetigungZeit = null;
+$('veroeffentlichen').onclick = () => {
+  const knopf = $('veroeffentlichen');
+  if (bestaetigungZeit) {
+    clearTimeout(bestaetigungZeit);
+    bestaetigungZeit = null;
+    knopf.classList.remove('bestaetigen');
+    knopf.textContent = 'Jetzt veröffentlichen';
+    veroeffentlichen(false);
+    return;
+  }
+  const v = letzterStatus && letzterStatus.veroeffentlichung;
+  const n = v && !v.fehler ? v.neu : 0;
+  knopf.classList.add('bestaetigen');
+  knopf.textContent = n ? n + ' Beitr' + (n === 1 ? 'ag' : 'äge') + ' online stellen?' : 'Wirklich veröffentlichen?';
+  bestaetigungZeit = setTimeout(() => {
+    bestaetigungZeit = null;
+    knopf.classList.remove('bestaetigen');
+    knopf.textContent = 'Jetzt veröffentlichen';
+  }, 5000);
+};
+$('pruefen').onclick = () => veroeffentlichen(true);
+
+let letzterStatus = null;
+
+function offenAnzeigen(d) {
+  const box = $('offen');
+  if (!d) return;
+  const v = d.veroeffentlichung;
+
+  if (!v || v.fehler) {
+    box.className = 'offen';
+    box.innerHTML = '<div class="wert">Unbekannt</div><div class="unter">' + esc(v ? v.fehler : 'Keine Angabe') + '</div>';
+    return;
+  }
+
+  if (!v.ausstehend) {
+    box.className = 'offen fertig';
+    box.innerHTML = '<div class="wert">Alles online</div><div class="unter">Letzter Stand vom ' + esc(new Date(v.letzterStand).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })) + '</div>';
+    if (!laeuft) $('veroeffentlichen').disabled = true;
+    return;
+  }
+
+  const teile = [];
+  if (v.geaendert) teile.push(v.geaendert + ' Beitr' + (v.geaendert === 1 ? 'ag' : 'äge') + ' geändert');
+  if (v.geloescht) teile.push(v.geloescht + ' Beitr' + (v.geloescht === 1 ? 'ag' : 'äge') + ' gelöscht');
+  if (v.sonstige) teile.push(v.sonstige + ' Datei' + (v.sonstige === 1 ? '' : 'en') + ' an Code oder Einstellungen');
+  if (!teile.length && v.voraus) teile.push('bereits gespeichert, aber noch nicht hochgeladen');
+  const kopfzeile = v.neu
+    ? v.neu + '<small>neue' + (v.neu === 1 ? 'r Beitrag wartet' : ' Beiträge warten') + '</small>'
+    : 'Änderungen warten';
+  box.className = 'offen';
+  box.innerHTML =
+    '<div class="wert">' + kopfzeile + '</div>'
+    + (teile.length ? '<div class="unter">' + (v.neu ? 'dazu ' : '') + esc(teile.join(', ')) + '</div>' : '')
+    + (v.neueTitel.length ? '<ul>' + v.neueTitel.slice(0, 4).map((t) => '<li>' + esc(t) + '</li>').join('')
+       + (v.neu > 4 ? '<li>und ' + (v.neu - 4) + ' weitere</li>' : '') + '</ul>' : '');
+  if (!laeuft) $('veroeffentlichen').disabled = false;
 }
 
 async function laden() {
   let d;
   try { d = await (await fetch('/api/status')).json(); }
   catch { $('fuss').textContent = 'Server nicht erreichbar.'; return; }
+  letzterStatus = d;
 
   $('titel').textContent = d.site.titel + ' Steuerung';
   $('seitenlink').href = d.site.adresse;
-  $('livestatus').innerHTML = d.live.erreichbar
-    ? '<span class="punkt an"></span>online, ' + d.live.adressen + ' Adressen'
-    : '<span class="punkt aus"></span>nicht erreichbar';
+
+  // Online gezaehlt werden Beitraege, nicht Adressen. Weicht die Zahl vom
+  // lokalen Bestand ab, ist noch etwas unveroeffentlicht.
+  if (d.live.erreichbar && d.live.beitraege != null) {
+    const gleich = d.live.beitraege === d.artikel.gesamt;
+    $('livestatus').innerHTML = '<span class="punkt ' + (gleich ? 'an' : 'warn') + '"></span>online: '
+      + d.live.beitraege + ' von ' + d.artikel.gesamt + ' Beiträgen';
+  } else {
+    $('livestatus').innerHTML = '<span class="punkt aus"></span>Seite nicht erreichbar';
+  }
+
+  offenAnzeigen(d);
+  if (d.laeuftGerade && !laeuft) {
+    for (const b of document.querySelectorAll('[data-aktion]')) b.disabled = true;
+    $('fuss').textContent = 'Läuft gerade: ' + d.laeuftGerade;
+  }
 
   // Bestand
-  $('a_gesamt').innerHTML = zahl(d.artikel.gesamt) + '<small>Beitraege</small>';
-  $('a_woerter').textContent = zahl(d.artikel.woerterGesamt) + ' Woerter, Schnitt ' + zahl(d.artikel.woerterSchnitt)
+  $('a_gesamt').innerHTML = zahl(d.artikel.gesamt) + '<small>Beiträge</small>';
+  $('a_woerter').textContent = zahl(d.artikel.woerterGesamt) + ' Wörter, Schnitt ' + zahl(d.artikel.woerterSchnitt)
     + (d.artikel.heute ? ' | heute ' + d.artikel.heute + ' neu' : '');
   const max = Math.max(1, ...d.artikel.nachKategorie.map((k) => k.anzahl));
   $('a_kategorien').innerHTML = d.artikel.nachKategorie.map((k) =>
-    '<div class="reihe"><span>' + k.label + '</span><span>' + k.anzahl + '</span></div>'
+    '<div class="reihe"><span>' + esc(k.label) + '</span><span>' + k.anzahl + '</span></div>'
     + '<div class="balken"><i style="width:' + Math.round(k.anzahl / max * 100) + '%"></i></div>').join('');
 
   // Verbrauch
   $('v_gesamt').innerHTML = zahl(d.verbrauch.gesamtKosten, 2) + '<small>USD Gegenwert</small>';
-  $('v_unter').textContent = d.verbrauch.laeufe + ' Laeufe, ' + zahl(d.verbrauch.artikelGesamt) + ' Beitraege, '
+  $('v_unter').textContent = d.verbrauch.laeufe + ' Läufe, ' + zahl(d.verbrauch.artikelGesamt) + ' Beiträge, '
     + zahl(d.verbrauch.gesamtTokens) + ' Token | heute ' + zahl(d.verbrauch.heute, 2) + ' USD';
   $('v_letzte').innerHTML = d.verbrauch.letzte.length
     ? d.verbrauch.letzte.map((e) => reihe(
-        new Date(e.zeit).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-        + '<span class="markierung">' + e.artikel + '</span>',
+        esc(new Date(e.zeit).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }))
+        + '<span class="markierung">' + Number(e.artikel || 0) + '</span>',
         zahl(e.kostenGegenwert, 2) + ' USD')).join('')
-    : '<p class="leer">Noch keine Laeufe aufgezeichnet.</p>';
+    : '<p class="leer">Noch keine Läufe aufgezeichnet.</p>';
 
   // Messung
   $('m_inhalt').innerHTML = d.messung.vorhanden
     ? '<div class="zahl">' + zahl(d.messung.klicks) + '<small>Klicks</small></div>'
       + '<div class="unter">' + zahl(d.messung.impressionen) + ' Impressionen, '
-      + d.messung.artikelMitDaten + ' Beitraege mit Daten</div>'
+      + Number(d.messung.artikelMitDaten || 0) + ' Beiträge mit Daten</div>'
       + '<div style="margin-top:.9rem">' + d.messung.top.map((t) =>
-          reihe(t.slug.slice(0, 34), t.klicks + ' Kl.')).join('') + '</div>'
+          reihe(esc(t.slug.slice(0, 34)), Number(t.klicks || 0) + ' Kl.')).join('') + '</div>'
     : '<p class="leer">Noch keine Daten. Die Search Console sammelt erst ein paar Tage. '
       + 'Danach den CSV-Export unter Leistung, Seiten herunterladen und in den Ordner data legen. '
-      + 'Ab zehn gemessenen Beitraegen und zwanzig Klicks gewichtet der Bot die Artikelformen selbst.</p>';
+      + 'Ab zehn gemessenen Beiträgen und zwanzig Klicks gewichtet der Bot die Artikelformen selbst.</p>';
 
   // Themenplan
   if (d.plan) {
     const p = d.plan;
     $('p_inhalt').innerHTML =
       '<div class="zahl">' + p.evergreenOffen + '<small>von ' + p.evergreenGesamt + ' offen</small></div>'
-      + '<div class="unter">zeitlose Themen, reichen fuer ' + Math.ceil(p.evergreenOffen / Math.max(1, d.site.proTag)) + ' Tage</div>'
+      + '<div class="unter">zeitlose Themen, reichen für ' + Math.ceil(p.evergreenOffen / Math.max(1, d.site.proTag)) + ' Tage</div>'
       + '<div style="margin-top:.9rem">'
       + (p.saisonalAktiv.length
-          ? p.saisonalAktiv.map((s) => reihe(s.titel.slice(0, 30), s.anlass + ', bis ' + s.bis, true)).join('')
+          ? p.saisonalAktiv.map((s) => reihe(esc(s.titel.slice(0, 30)), esc(s.anlass + ', bis ' + s.bis), true)).join('')
           : '<div class="reihe"><span>Aktuell kein Saisonthema</span><span></span></div>')
       + (p.naechsteSaison.length
-          ? p.naechsteSaison.map((s) => reihe('<span style="opacity:.6">' + s.anlass + '</span>', 'ab ' + s.ab)).join('')
+          ? p.naechsteSaison.map((s) => reihe('<span style="opacity:.6">' + esc(s.anlass) + '</span>', esc('ab ' + s.ab))).join('')
           : '')
       + '</div>';
   } else $('p_inhalt').innerHTML = '<p class="leer">Kein Themenplan gefunden.</p>';
@@ -277,29 +428,31 @@ async function laden() {
   // Automatik
   const t = d.aufgabe;
   $('t_inhalt').innerHTML = t.eingerichtet
-    ? reihe('Status', t.status || 'unbekannt', true)
-      + reihe('Naechster Lauf', t.naechster || '-')
-      + reihe('Letzter Lauf', t.letzter || '-')
-      + reihe('Beitraege pro Tag', d.site.proTag)
-      + reihe('Automatisch pushen', d.site.autopush ? 'an' : 'aus')
+    ? reihe('Status', esc(t.status || 'unbekannt'), true)
+      + reihe('Nächster Lauf', esc(t.naechster || '-'))
+      + reihe('Letzter Lauf', esc(t.letzter || '-'))
+      + reihe('Beiträge pro Tag', Number(d.site.proTag || 0))
+      + reihe('Automatisch hochladen', d.site.autopush ? 'an' : 'aus')
       + reihe('Affiliate-Links', d.site.affiliateAktiv ? 'an' : 'aus')
-    : '<p class="leer">Keine geplante Aufgabe gefunden. Einrichten mit dem Skript in scripts.</p>';
+    : '<p class="leer">Keine geplante Aufgabe gefunden. Einrichten mit dem Skript im Ordner scripts.</p>';
 
   // Neueste
   $('n_inhalt').innerHTML = d.artikel.neueste.length
     ? d.artikel.neueste.map((n) =>
-        '<div class="reihe"><span><a href="' + d.site.adresse + '/' + n.slug + '/" target="_blank">'
-        + n.titel.slice(0, 40) + '</a></span><span>' + n.datum.slice(5) + '</span></div>').join('')
+        '<div class="reihe"><span><a href="' + esc(d.site.adresse + '/' + encodeURIComponent(n.slug) + '/') + '" target="_blank" rel="noopener">'
+        + esc(n.titel.slice(0, 40)) + '</a></span><span>' + esc(String(n.datum).slice(5)) + '</span></div>').join('')
     : '<p class="leer">Noch nichts geschrieben.</p>';
 
-  $('fuss').textContent = 'Stand ' + new Date().toLocaleTimeString('de-DE')
-    + (d.gewichte ? ' | gelernte Gewichte vom ' + new Date(d.gewichte.updatedAt).toLocaleDateString('de-DE') : ' | noch keine gelernten Gewichte');
+  if (!d.laeuftGerade) {
+    $('fuss').textContent = 'Stand ' + new Date().toLocaleTimeString('de-DE')
+      + (d.gewichte ? ' | gelernte Gewichte vom ' + new Date(d.gewichte.updatedAt).toLocaleDateString('de-DE') : ' | noch keine gelernten Gewichte');
+  }
 }
 
-$('plus1').onclick = () => starten(1);
-$('plus5').onclick = () => { $('anzahl').value = 5; schaetzen(); starten(5); };
-$('plus10').onclick = () => { $('anzahl').value = 10; schaetzen(); starten(10); };
-$('starten').onclick = () => starten(Math.max(1, Math.min(50, Number($('anzahl').value) || 1)));
+$('plus1').onclick = () => erzeugen(1);
+$('plus5').onclick = () => { $('anzahl').value = 5; schaetzen(); erzeugen(5); };
+$('plus10').onclick = () => { $('anzahl').value = 10; schaetzen(); erzeugen(10); };
+$('starten').onclick = () => erzeugen(Math.max(1, Math.min(50, Number($('anzahl').value) || 1)));
 $('anzahl').oninput = schaetzen;
 $('neuladen').onclick = () => { laden(); schaetzen(); };
 

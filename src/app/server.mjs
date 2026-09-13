@@ -14,9 +14,31 @@ import { ROOT, paths, loadConfig, readPosts, log } from '../util.mjs';
 import { schaetzung } from '../llm.mjs';
 import { loadPerformance } from '../performance.mjs';
 import { loadWeights } from '../learn.mjs';
+import { offeneAenderungen, veroeffentlichen } from '../veroeffentlichen.mjs';
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4180);
+const EIGENE_HOSTS = new Set([`127.0.0.1:${PORT}`, `localhost:${PORT}`]);
+const EIGENE_URSPRUENGE = new Set([`http://127.0.0.1:${PORT}`, `http://localhost:${PORT}`]);
+
+// Schutz vor fremden Webseiten. Der Server hoert zwar nur lokal, aber jede
+// Seite, die im Browser offen ist, kann Anfragen an 127.0.0.1 schicken. Ohne
+// diese Pruefung koennte eine fremde Seite Beitraege erzeugen, also Kontingent
+// verbrauchen, oder sie veroeffentlichen.
+//
+//   Host-Kopf:   verhindert DNS-Rebinding, bei dem eine fremde Domain auf
+//                127.0.0.1 zeigt.
+//   Origin:      stammt die Anfrage aus einem anderen Ursprung, abweisen.
+//   Eigener Kopf: Formulare und einfache Anfragen fremder Seiten koennen ihn
+//                nicht setzen, ohne dass der Browser vorher nachfragt, und
+//                diese Nachfrage beantwortet der Server nicht.
+function vertrauenswuerdig(req, mitAktion) {
+  if (!EIGENE_HOSTS.has(String(req.headers.host || ''))) return false;
+  const origin = req.headers.origin;
+  if (origin && !EIGENE_URSPRUENGE.has(origin)) return false;
+  if (mitAktion && req.headers['x-streamtipp'] !== '1') return false;
+  return true;
+}
 
 function jsonAntwort(res, daten, code = 200) {
   const koerper = JSON.stringify(daten);
@@ -102,15 +124,19 @@ function offeneThemen(posts) {
   };
 }
 
+// Zaehlt die Beitraege, die wirklich online sind, ueber den Suchindex der
+// Live-Seite. Frueher standen hier die Adressen der Sitemap, und die enthalten
+// auch Startseite, Suche und Kategorieseiten. 67 Adressen bei 61 Beitraegen
+// sah dann wie ein Fehler aus.
 async function liveStatus(site) {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 6000);
-    const r = await fetch(`${site.baseUrl}/sitemap.xml?cb=${Date.now()}`, { signal: ctrl.signal });
+    const r = await fetch(`${site.baseUrl}/suche-index.json?cb=${Date.now()}`, { signal: ctrl.signal });
     clearTimeout(t);
     if (!r.ok) return { erreichbar: false, status: r.status };
-    const xml = await r.text();
-    return { erreichbar: true, status: r.status, adressen: (xml.match(/<loc>/g) || []).length };
+    const index = await r.json();
+    return { erreichbar: true, status: r.status, beitraege: Array.isArray(index) ? index.length : null };
   } catch (err) {
     return { erreichbar: false, fehler: err.message };
   }
@@ -169,19 +195,23 @@ async function status() {
     gewichte,
     aufgabe: geplanteAufgabe(),
     live: await liveStatus(site),
+    veroeffentlichung: offeneAenderungen(),
+    laeuftGerade,
   };
 }
 
-// Erzeugung als Ereignisstrom, damit die App den Fortschritt Zeile fuer Zeile
-// zeigt statt minutenlang stillzustehen.
+// Laengere Vorgaenge laufen als Ereignisstrom, damit die App den Fortschritt
+// Zeile fuer Zeile zeigt statt minutenlang stillzustehen. Es laeuft immer nur
+// einer: Erzeugen und Veroeffentlichen gleichzeitig wuerde einen halb fertigen
+// Stand hochladen.
 
-let laeuftGerade = false;
+let laeuftGerade = null;
 
-function erzeugen(res, anzahl) {
+function strom(res, name, arbeit) {
   if (laeuftGerade) {
-    return jsonAntwort(res, { fehler: 'Es laeuft bereits ein Durchgang.' }, 409);
+    return jsonAntwort(res, { fehler: `Es läuft bereits: ${laeuftGerade}. Bitte warten, bis das fertig ist.` }, 409);
   }
-  laeuftGerade = true;
+  laeuftGerade = name;
 
   res.writeHead(200, {
     'content-type': 'text/event-stream; charset=utf-8',
@@ -189,42 +219,67 @@ function erzeugen(res, anzahl) {
     connection: 'keep-alive',
   });
 
-  const sende = (typ, daten) => res.write(`event: ${typ}\ndata: ${JSON.stringify(daten)}\n\n`);
-  sende('start', { anzahl });
-
-  const kind = spawn(process.execPath, [path.join(ROOT, 'src', 'pipeline.mjs'), '--count', String(anzahl)], {
-    cwd: ROOT,
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-
-  let rest = '';
-  const verteile = (stueck) => {
-    rest += stueck;
-    const zeilen = rest.split('\n');
-    rest = zeilen.pop();
-    for (const z of zeilen) if (z.trim()) sende('zeile', { text: z.trimEnd() });
+  const sende = (typ, daten) => {
+    try {
+      res.write(`event: ${typ}\ndata: ${JSON.stringify(daten)}\n\n`);
+    } catch { /* Fenster wurde geschlossen, der Vorgang laeuft trotzdem zu Ende */ }
   };
 
-  kind.stdout.on('data', (d) => verteile(String(d)));
-  kind.stderr.on('data', (d) => verteile(String(d)));
+  Promise.resolve()
+    .then(() => arbeit(sende))
+    .then((code) => sende('fertig', { code: code ?? 0 }))
+    .catch((err) => {
+      sende('zeile', { text: `Fehler: ${err.message}` });
+      sende('fertig', { code: 1 });
+    })
+    .finally(() => {
+      laeuftGerade = null;
+      res.end();
+    });
+}
 
-  kind.on('close', (code) => {
-    if (rest.trim()) sende('zeile', { text: rest.trimEnd() });
-    sende('fertig', { code });
-    laeuftGerade = false;
-    res.end();
-  });
+function erzeugen(sende, anzahl) {
+  return new Promise((resolve) => {
+    const kind = spawn(process.execPath, [path.join(ROOT, 'src', 'pipeline.mjs'), '--count', String(anzahl)], {
+      cwd: ROOT,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+    });
 
-  kind.on('error', (err) => {
-    sende('zeile', { text: `Fehler: ${err.message}` });
-    sende('fertig', { code: 1 });
-    laeuftGerade = false;
-    res.end();
+    let rest = '';
+    const verteile = (stueck) => {
+      rest += stueck;
+      const teile = rest.split('\n');
+      rest = teile.pop();
+      for (const z of teile) if (z.trim()) sende('zeile', { text: z.trimEnd() });
+    };
+
+    kind.stdout.on('data', (d) => verteile(String(d)));
+    kind.stderr.on('data', (d) => verteile(String(d)));
+    kind.on('close', (code) => {
+      if (rest.trim()) sende('zeile', { text: rest.trimEnd() });
+      resolve(code ?? 1);
+    });
+    kind.on('error', (err) => {
+      sende('zeile', { text: `Fehler: ${err.message}` });
+      resolve(1);
+    });
   });
 }
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
+  const aktionen = ['/api/erzeugen', '/api/veroeffentlichen'];
+  const istAktion = aktionen.includes(url.pathname);
+
+  if (!vertrauenswuerdig(req, istAktion)) {
+    res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8' });
+    return res.end('Verboten');
+  }
+  if (istAktion && req.method !== 'POST') {
+    res.writeHead(405, { 'content-type': 'text/plain; charset=utf-8', allow: 'POST' });
+    return res.end('Nur POST');
+  }
 
   try {
     if (url.pathname === '/' || url.pathname === '/index.html') {
@@ -242,7 +297,15 @@ const server = http.createServer(async (req, res) => {
 
     if (url.pathname === '/api/erzeugen') {
       const anzahl = Math.max(1, Math.min(50, Number(url.searchParams.get('anzahl')) || 1));
-      return erzeugen(res, anzahl);
+      return strom(res, `Erzeugung von ${anzahl} Beitrag${anzahl === 1 ? '' : 'en'}`, (sende) => erzeugen(sende, anzahl));
+    }
+
+    if (url.pathname === '/api/veroeffentlichen') {
+      const probe = url.searchParams.get('probe') === '1';
+      return strom(res, probe ? 'Prüfung' : 'Veröffentlichung', async (sende) => {
+        const ergebnis = await veroeffentlichen({ sende, probe });
+        return ergebnis.ok ? 0 : 1;
+      });
     }
 
     res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });

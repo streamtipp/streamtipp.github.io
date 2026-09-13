@@ -107,8 +107,21 @@ Darin:
 - Stand des Themenplans samt aktivem Saisonthema
 - Status der geplanten Aufgabe mit naechstem Lauf
 
-Der Server bindet nur an 127.0.0.1, von aussen ist nichts erreichbar. Ohne
-Desktop-Verknuepfung geht es auch so:
+Beitraege, die in der App entstehen, liegen zuerst nur lokal. Online gehen sie
+ueber **Jetzt veroeffentlichen**. Der Knopf zeigt vorher, wie viele neue
+Beitraege warten, fragt einmal nach und erledigt dann alles in einem Zug:
+Seite bauen, Impressum und Datenschutz pruefen, committen, zu GitHub
+hochladen, auf den Deploy warten und neue Adressen bei Bing melden. **Nur
+pruefen** macht dasselbe ohne Commit und ohne Upload.
+
+In der Kopfzeile steht, wie viele Beitraege online sind, im Vergleich zum
+lokalen Bestand. Weichen die Zahlen ab, wartet noch etwas.
+
+Der Server bindet nur an 127.0.0.1. Aktionen nimmt er nur aus der App selbst
+an: Anfragen mit fremdem Host, fremdem Ursprung oder ohne den App-eigenen
+Kopf werden abgewiesen, damit keine andere Webseite im Browser heimlich
+Beitraege erzeugen oder veroeffentlichen kann. Ohne Desktop-Verknuepfung geht
+es auch so:
 
 ```bash
 npm run app
