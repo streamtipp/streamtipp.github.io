@@ -16,6 +16,7 @@
     "migrate": "node src/migrate.mjs",
     "indexnow": "node src/indexnow.mjs",
     "app": "node src/app/server.mjs",
+    "pinterest": "node src/pinterest.mjs",
     "autopilot": "node src/autopilot.mjs",
     "preflight": "node -e \"import('./src/preflight.mjs').then(m => process.exit(m.reportPreflight() ? 0 : 1))\"",
     "doctor": "node src/doctor.mjs",

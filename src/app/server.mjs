@@ -15,6 +15,7 @@ import { schaetzung, modellEinstellung } from '../llm.mjs';
 import { loadPerformance } from '../performance.mjs';
 import { loadWeights } from '../learn.mjs';
 import { offeneAenderungen, veroeffentlichen } from '../veroeffentlichen.mjs';
+import { pinterestUebersicht, pinterestExport, EXPORT_ORDNER } from '../pinterest.mjs';
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4180);
@@ -197,6 +198,7 @@ async function status() {
     aufgabe: geplanteAufgabe(),
     live: await liveStatus(site),
     veroeffentlichung: offeneAenderungen(),
+    pinterest: (() => { try { return pinterestUebersicht(); } catch (err) { return { fehler: err.message }; } })(),
     laeuftGerade,
   };
 }
@@ -270,7 +272,7 @@ function erzeugen(sende, anzahl) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
-  const aktionen = ['/api/erzeugen', '/api/veroeffentlichen'];
+  const aktionen = ['/api/erzeugen', '/api/veroeffentlichen', '/api/pinterest', '/api/pinterest-ordner'];
   const istAktion = aktionen.includes(url.pathname);
 
   if (!vertrauenswuerdig(req, istAktion)) {
@@ -299,6 +301,33 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/erzeugen') {
       const anzahl = Math.max(1, Math.min(50, Number(url.searchParams.get('anzahl')) || 1));
       return strom(res, `Erzeugung von ${anzahl} Beitrag${anzahl === 1 ? '' : 'en'}`, (sende) => erzeugen(sende, anzahl));
+    }
+
+    if (url.pathname === '/api/pinterest') {
+      return jsonAntwort(res, await pinterestExport({ trocken: url.searchParams.get('probe') === '1' }));
+    }
+
+    if (url.pathname === '/api/pinterest-ordner') {
+      fs.mkdirSync(EXPORT_ORDNER, { recursive: true });
+      spawn('explorer.exe', [EXPORT_ORDNER], { detached: true, stdio: 'ignore' }).unref();
+      return jsonAntwort(res, { ok: true });
+    }
+
+    // Download der fertigen CSV. Nur Dateinamen nach festem Muster, damit sich
+    // darueber keine anderen Dateien vom Rechner abrufen lassen.
+    if (url.pathname === '/api/pinterest-datei') {
+      const name = String(url.searchParams.get('name') || '');
+      const datei = path.join(EXPORT_ORDNER, name);
+      if (!/^pins-[\d-]+\.csv$/.test(name) || !fs.existsSync(datei)) {
+        res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+        return res.end('Datei nicht gefunden');
+      }
+      res.writeHead(200, {
+        'content-type': 'text/csv; charset=utf-8',
+        'content-disposition': `attachment; filename="${name}"`,
+        'cache-control': 'no-store',
+      });
+      return res.end(fs.readFileSync(datei));
     }
 
     if (url.pathname === '/api/veroeffentlichen') {

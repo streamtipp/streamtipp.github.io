@@ -1,0 +1,13 @@
+{
+  "hinweis": "Pinnwaende muessen bei Pinterest nicht vorher existieren, sie werden beim Hochladen der CSV angelegt. Uhrzeiten gelten in der Zeitzone deines Pinterest-Kontos.",
+  "pinnwaende": {
+    "listicle": "Filmtipps für heute Abend",
+    "vergleich": "Streaming und Heimkino im Vergleich",
+    "guide": "Heimkino einrichten",
+    "wo-streamen": "Wo läuft was im Stream"
+  },
+  "pinsProTag": 3,
+  "uhrzeiten": ["18:30", "20:00", "21:30"],
+  "maxTageVoraus": 28,
+  "abschluss": "Alle Tipps mit Einordnung auf Streamtipp."
+}

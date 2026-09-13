@@ -7,3 +7,4 @@ Thumbs.db
 logs/
 reports/*.md
 !reports/.gitkeep
+pinterest/

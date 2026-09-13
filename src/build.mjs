@@ -21,7 +21,7 @@ import { renderMarkdown, plainExcerpt } from './markdown.mjs';
 import { injectAffiliates } from './affiliate.mjs';
 import { loadConfig, paths, readPosts, escapeHtml, log } from './util.mjs';
 import { ICONS, VARIANTEN, variante, glyphFor, FAVICON_SVG } from './design.mjs';
-import { vorschauenErzeugen, ogDatei, OG_ORDNER, ICON_ORDNER, OG_BREITE, OG_HOEHE } from './vorschau.mjs';
+import { vorschauenErzeugen, ogDatei, OG_ORDNER, PIN_ORDNER, ICON_ORDNER, OG_BREITE, OG_HOEHE } from './vorschau.mjs';
 
 
 // Farben des dunklen Saals. Steht einmal hier und wird zweimal eingesetzt:
@@ -380,7 +380,7 @@ ${bildMeta}<meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="icon" href="${prefix}favicon.svg" type="image/svg+xml">
 <link rel="icon" href="${prefix}favicon-48.png" sizes="48x48" type="image/png">
 <link rel="apple-touch-icon" href="${prefix}apple-touch-icon.png">
-${site.verification?.google ? `<meta name="google-site-verification" content="${escapeHtml(site.verification.google)}">\n` : ''}${site.verification?.bing ? `<meta name="msvalidate.01" content="${escapeHtml(site.verification.bing)}">\n` : ''}<script>${THEMA_KOPF}</script>
+${site.verification?.google ? `<meta name="google-site-verification" content="${escapeHtml(site.verification.google)}">\n` : ''}${site.verification?.bing ? `<meta name="msvalidate.01" content="${escapeHtml(site.verification.bing)}">\n` : ''}${site.verification?.pinterest ? `<meta name="p:domain_verify" content="${escapeHtml(site.verification.pinterest)}">\n` : ''}<script>${THEMA_KOPF}</script>
 <style>${CSS}</style>
 ${jsonLd ? `<script type="application/ld+json">${sicheresJson(jsonLd)}</script>` : ''}
 </head>
@@ -755,10 +755,11 @@ export async function build() {
   fs.mkdirSync(paths.dist, { recursive: true });
 
   // Vorschaubilder und Favicons in die Website kopieren.
-  if (fs.existsSync(OG_ORDNER)) {
-    fs.mkdirSync(path.join(paths.dist, 'og'), { recursive: true });
-    for (const f of fs.readdirSync(OG_ORDNER)) {
-      if (f.endsWith('.jpg')) fs.copyFileSync(path.join(OG_ORDNER, f), path.join(paths.dist, 'og', f));
+  for (const [ordner, ziel] of [[OG_ORDNER, 'og'], [PIN_ORDNER, 'pins']]) {
+    if (!fs.existsSync(ordner)) continue;
+    fs.mkdirSync(path.join(paths.dist, ziel), { recursive: true });
+    for (const f of fs.readdirSync(ordner)) {
+      if (f.endsWith('.jpg')) fs.copyFileSync(path.join(ordner, f), path.join(paths.dist, ziel, f));
     }
   }
   fs.writeFileSync(path.join(paths.dist, 'favicon.svg'), FAVICON_SVG);

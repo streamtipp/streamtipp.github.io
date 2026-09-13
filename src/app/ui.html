@@ -137,6 +137,16 @@ footer{margin-top:1.6rem;color:var(--gedaempft);font-size:.8rem;text-align:cente
   </section>
 
   <section class="karte">
+    <h2>Pinterest</h2>
+    <div id="pin_inhalt"><p class="leer">…</p></div>
+    <div class="steuerung" style="margin-top:.9rem">
+      <button id="pin_erstellen" data-aktion>CSV erstellen</button>
+      <button class="zweit" id="pin_ordner" data-aktion>Ordner öffnen</button>
+    </div>
+    <div id="pin_ergebnis" class="hinweis"></div>
+  </section>
+
+  <section class="karte">
     <h2>Bestand</h2>
     <div class="zahl" id="a_gesamt">-<small>Beiträge</small></div>
     <div class="unter" id="a_woerter"></div>
@@ -378,6 +388,21 @@ async function laden() {
     $('fuss').textContent = 'Läuft gerade: ' + d.laeuftGerade;
   }
 
+  // Pinterest
+  const pin = d.pinterest || {};
+  if (pin.fehler) {
+    $('pin_inhalt').innerHTML = '<p class="leer">' + esc(pin.fehler) + '</p>';
+  } else {
+    $('pin_inhalt').innerHTML =
+      '<div class="zahl">' + Number(pin.offen || 0) + '<small>Pins bereit</small></div>'
+      + '<div class="unter">' + Number(pin.exportiert || 0) + ' bereits exportiert'
+      + (pin.letzterTermin ? ', geplant bis ' + esc(new Date(pin.letzterTermin).toLocaleDateString('de-DE')) : '') + '</div>'
+      + '<div style="margin-top:.7rem">'
+      + reihe('Website bei Pinterest bestätigt', pin.verifiziert ? 'ja' : 'noch nicht')
+      + (pin.letzteDatei ? reihe('Letzte Datei', '<a href="/api/pinterest-datei?name=' + encodeURIComponent(pin.letzteDatei) + '">' + esc(pin.letzteDatei) + '</a>') : '')
+      + '</div>';
+  }
+
   // Bestand
   $('a_gesamt').innerHTML = zahl(d.artikel.gesamt) + '<small>Beiträge</small>';
   $('a_woerter').textContent = zahl(d.artikel.woerterGesamt) + ' Wörter, Schnitt ' + zahl(d.artikel.woerterSchnitt)
@@ -450,6 +475,34 @@ async function laden() {
       + (d.gewichte ? ' | gelernte Gewichte vom ' + new Date(d.gewichte.updatedAt).toLocaleDateString('de-DE') : ' | noch keine gelernten Gewichte');
   }
 }
+
+$('pin_erstellen').onclick = async () => {
+  if (laeuft) return;
+  const knopf = $('pin_erstellen');
+  knopf.disabled = true;
+  $('pin_ergebnis').textContent = 'Prüfe, welche Pinterest-Bilder online erreichbar sind …';
+  try {
+    const r = await fetch('/api/pinterest', { method: 'POST', headers: { 'x-streamtipp': '1' } });
+    const e = await r.json();
+    if (!r.ok || e.fehler) throw new Error(e.fehler || 'HTTP ' + r.status);
+    if (!e.anzahl) {
+      $('pin_ergebnis').innerHTML = 'Keine neuen Pins. '
+        + (e.nichtOnline ? esc(e.nichtOnline + ' Beiträge sind noch nicht veröffentlicht, erst „Jetzt veröffentlichen“ klicken.') : 'Alles ist bereits exportiert.');
+    } else {
+      const von = new Date(e.erster).toLocaleDateString('de-DE');
+      const bis = new Date(e.letzter).toLocaleDateString('de-DE');
+      $('pin_ergebnis').innerHTML = esc(e.anzahl + ' Pins, geplant vom ' + von + ' bis ' + bis + '. ')
+        + '<a href="/api/pinterest-datei?name=' + encodeURIComponent(e.name) + '">Datei herunterladen</a>'
+        + (e.zurueckgestellt ? esc(' · ' + e.zurueckgestellt + ' kommen in den nächsten Export.') : '')
+        + (e.nichtOnline ? esc(' · ' + e.nichtOnline + ' noch nicht online.') : '');
+    }
+  } catch (err) {
+    $('pin_ergebnis').textContent = 'Fehler: ' + err.message;
+  }
+  knopf.disabled = false;
+  laden();
+};
+$('pin_ordner').onclick = () => fetch('/api/pinterest-ordner', { method: 'POST', headers: { 'x-streamtipp': '1' } });
 
 $('plus1').onclick = () => erzeugen(1);
 $('plus5').onclick = () => { $('anzahl').value = 5; schaetzen(); erzeugen(5); };

@@ -27,6 +27,9 @@ const DESIGN_VERSION = 1;
 export const OG_BREITE = 1200;
 export const OG_HOEHE = 630;
 export const OG_ORDNER = path.join(paths.site, 'og');
+export const PIN_ORDNER = path.join(paths.site, 'pins');
+export const PIN_BREITE = 1000;
+export const PIN_HOEHE = 1500;
 export const ICON_ORDNER = path.join(paths.site, 'icons');
 const MANIFEST = path.join(OG_ORDNER, 'manifest.json');
 
@@ -91,6 +94,54 @@ h1{margin:auto 0;font:700 ${titelGroesse(titel)}px/1.04 "Bahnschrift SemiCondens
 </div>
 <div class="symbol">${ICONS[symbol] || ICONS.ticket}</div>
 </body></html>`;
+}
+
+// Pinterest-Bild im Hochformat 2:3, dem Format, das Pinterest empfiehlt. Der
+// Titel steht gross im Bild, weil Pins im Feed ohne Text darunter gesehen
+// werden. Die Beschreibung als zweite Zeile gibt den Grund zum Klicken.
+function pinHtml({ titel, kategorie, symbol, v, marke, domain, unterzeile }) {
+  const [c1, c2] = VARIANTEN[v] || VARIANTEN[0];
+  const n = String(titel).length;
+  const groesse = n <= 30 ? 118 : n <= 45 ? 104 : n <= 60 ? 92 : n <= 75 ? 82 : 74;
+  return `<!doctype html><html lang="de"><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}
+html,body{margin:0;width:${PIN_BREITE}px;height:${PIN_HOEHE}px;overflow:hidden}
+body{position:relative;color:#f7ede1;font-family:"Segoe UI",system-ui,sans-serif;
+  background:linear-gradient(160deg,${c1} 0%,${c2} 78%)}
+.licht{position:absolute;inset:0;background:radial-gradient(1100px 900px at 10% -8%,rgba(255,214,160,.36),transparent 60%)}
+.boden{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(8,4,8,.62))}
+.kopf{position:absolute;left:90px;right:90px;top:96px;display:flex;align-items:center;justify-content:space-between}
+.marke{font:700 58px/1 "Bahnschrift SemiCondensed","Bahnschrift",sans-serif}
+.marke span{color:#e8a95c}
+.symbol{width:120px;height:120px;color:#f7ede1;opacity:.9;filter:drop-shadow(0 6px 30px rgba(0,0,0,.35))}
+.symbol svg{width:100%;height:100%}
+.mitte{position:absolute;left:90px;right:90px;top:340px;bottom:250px;display:flex;flex-direction:column;justify-content:center}
+.kat{align-self:flex-start;display:flex;align-items:center;gap:18px;margin-bottom:44px;font:700 30px/1 "Segoe UI",sans-serif;
+  letter-spacing:.16em;text-transform:uppercase;color:#f2b56b}
+.kat::before{content:"";width:16px;height:16px;border-radius:50%;background:#f2b56b;box-shadow:0 0 22px #f2b56b}
+h1{margin:0;font:700 ${groesse}px/1.03 "Bahnschrift SemiCondensed","Bahnschrift","Arial Narrow",sans-serif;
+  display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;text-wrap:balance;
+  text-shadow:0 2px 34px rgba(0,0,0,.35)}
+.unter{margin:44px 0 0;font:400 38px/1.4 "Segoe UI",sans-serif;color:rgba(247,237,225,.84);
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.fuss{position:absolute;left:90px;right:90px;bottom:96px;display:flex;align-items:center;justify-content:space-between;
+  padding-top:40px;border-top:2px solid rgba(232,169,92,.45)}
+.domain{font:600 36px/1 "Segoe UI",sans-serif;color:#f7ede1}
+.pfeil{font:700 36px/1 "Segoe UI",sans-serif;color:#e8a95c;letter-spacing:.04em}
+</style></head><body>
+<div class="licht"></div><div class="boden"></div>
+<div class="kopf"><span class="marke">${markeHtml(marke)}</span><div class="symbol">${ICONS[symbol] || ICONS.ticket}</div></div>
+<div class="mitte">
+  <div class="kat">${esc(kategorie)}</div>
+  <h1>${esc(titel)}</h1>
+  ${unterzeile ? `<p class="unter">${esc(unterzeile)}</p>` : ''}
+</div>
+<div class="fuss"><span class="domain">${esc(domain)}</span><span class="pfeil">Jetzt lesen →</span></div>
+</body></html>`;
+}
+
+export function pinDatei(slug) {
+  return path.join(PIN_ORDNER, `${slug}.jpg`);
 }
 
 function iconHtml(groesse, abgerundet) {
@@ -230,6 +281,7 @@ export async function vorschauenErzeugen({ site, posts, labelFor }) {
   }
 
   fs.mkdirSync(OG_ORDNER, { recursive: true });
+  fs.mkdirSync(PIN_ORDNER, { recursive: true });
   fs.mkdirSync(ICON_ORDNER, { recursive: true });
 
   const domain = new URL(site.baseUrl).host;
@@ -241,7 +293,7 @@ export async function vorschauenErzeugen({ site, posts, labelFor }) {
   const start = { titel: site.tagline, kategorie: 'Film · Serie · Heimkino', symbol: 'ticket', v: 0, marke: site.title, domain };
   const startSumme = pruefsumme(start);
   if (manifest._start !== startSumme || !fs.existsSync(ogDatei('_start'))) {
-    auftraege.push({ schluessel: '_start', summe: startSumme, daten: start });
+    auftraege.push({ art: 'og', schluessel: '_start', summe: startSumme, daten: start });
   }
 
   for (const p of posts) {
@@ -256,7 +308,14 @@ export async function vorschauenErzeugen({ site, posts, labelFor }) {
     };
     const summe = pruefsumme(daten);
     if (manifest[p.slug] !== summe || !fs.existsSync(ogDatei(p.slug))) {
-      auftraege.push({ schluessel: p.slug, summe, daten });
+      auftraege.push({ art: 'og', schluessel: p.slug, summe, daten });
+    }
+
+    // Pins bekommen zusaetzlich die Beschreibung als Unterzeile.
+    const pinDaten = { ...daten, unterzeile: p.meta.description || '', art: 'pin' };
+    const pinSumme = pruefsumme(pinDaten);
+    if (manifest[`pin:${p.slug}`] !== pinSumme || !fs.existsSync(pinDatei(p.slug))) {
+      auftraege.push({ art: 'pin', schluessel: p.slug, summe: pinSumme, daten: pinDaten });
     }
   }
 
@@ -267,13 +326,15 @@ export async function vorschauenErzeugen({ site, posts, labelFor }) {
 
   // Bilder geloeschter Beitraege entfernen, damit der Ordner nicht mitwaechst.
   let entfernt = 0;
-  for (const f of fs.readdirSync(OG_ORDNER)) {
-    if (!f.endsWith('.jpg')) continue;
-    const slug = f.slice(0, -4);
-    if (!benoetigt.has(slug)) {
-      fs.rmSync(path.join(OG_ORDNER, f), { force: true });
-      delete manifest[slug];
-      entfernt++;
+  for (const [ordner, praefix] of [[OG_ORDNER, ''], [PIN_ORDNER, 'pin:']]) {
+    for (const f of fs.readdirSync(ordner)) {
+      if (!f.endsWith('.jpg')) continue;
+      const slug = f.slice(0, -4);
+      if (!benoetigt.has(slug) || (praefix && slug === '_start')) {
+        fs.rmSync(path.join(ordner, f), { force: true });
+        delete manifest[praefix + slug];
+        entfernt++;
+      }
     }
   }
 
@@ -285,7 +346,9 @@ export async function vorschauenErzeugen({ site, posts, labelFor }) {
     return 0;
   }
 
-  log('vorschau', `erzeuge ${auftraege.length} Vorschaubild${auftraege.length === 1 ? '' : 'er'}${iconsFehlen ? ' und die Favicons' : ''} ...`);
+  const anzahlOg = auftraege.filter((a) => a.art === 'og').length;
+  const anzahlPin = auftraege.length - anzahlOg;
+  log('vorschau', `erzeuge ${anzahlOg} Vorschaubilder und ${anzahlPin} Pinterest-Bilder${iconsFehlen ? ' sowie die Favicons' : ''} ...`);
 
   let edgeProzess;
   let cdp;
@@ -299,11 +362,12 @@ export async function vorschauenErzeugen({ site, posts, labelFor }) {
 
     for (const a of auftraege) {
       try {
-        const bild = await zeichnen(cdp, sessionId, {
-          html: ogHtml(a.daten), breite: OG_BREITE, hoehe: OG_HOEHE, format: 'jpeg', qualitaet: 86,
-        });
-        fs.writeFileSync(ogDatei(a.schluessel), bild);
-        manifest[a.schluessel] = a.summe;
+        const istPin = a.art === 'pin';
+        const bild = await zeichnen(cdp, sessionId, istPin
+          ? { html: pinHtml(a.daten), breite: PIN_BREITE, hoehe: PIN_HOEHE, format: 'jpeg', qualitaet: 86 }
+          : { html: ogHtml(a.daten), breite: OG_BREITE, hoehe: OG_HOEHE, format: 'jpeg', qualitaet: 86 });
+        fs.writeFileSync(istPin ? pinDatei(a.schluessel) : ogDatei(a.schluessel), bild);
+        manifest[istPin ? `pin:${a.schluessel}` : a.schluessel] = a.summe;
         erzeugt++;
         // Zwischendurch speichern: Bricht der Lauf ab, muss beim naechsten Mal
         // nicht alles von vorn gezeichnet werden.
@@ -329,6 +393,6 @@ export async function vorschauenErzeugen({ site, posts, labelFor }) {
     fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + '\n');
   }
 
-  log('vorschau', `${erzeugt} Vorschaubild${erzeugt === 1 ? '' : 'er'} erzeugt${entfernt ? `, ${entfernt} verwaiste entfernt` : ''}`);
+  log('vorschau', `${erzeugt} Bild${erzeugt === 1 ? '' : 'er'} erzeugt${entfernt ? `, ${entfernt} verwaiste entfernt` : ''}`);
   return erzeugt;
 }
