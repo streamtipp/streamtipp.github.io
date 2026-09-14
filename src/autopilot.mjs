@@ -63,12 +63,15 @@ async function main() {
     learn();
   }, journal);
 
-  const written = await step('Artikel schreiben', async () => {
+  // 0 heisst Pause. Frueher machte "postsPerDay || 2" daraus stillschweigend 2.
+  const proTag = Number.isInteger(site.postsPerDay) ? site.postsPerDay : 2;
+
+  const written = proTag === 0 ? (journal.push('[pause] Beiträge pro Tag steht auf 0, es wird nichts geschrieben'), 0) : await step('Artikel schreiben', async () => {
     const { discover } = await import('./discover.mjs');
     const { writeArticle } = await import('./write.mjs');
     const { loadState, saveState } = await import('./util.mjs');
 
-    const topics = await discover(site.postsPerDay || 2);
+    const topics = await discover(proTag);
     const state = loadState();
     state.usedTopics ||= [];
     state.published ||= [];

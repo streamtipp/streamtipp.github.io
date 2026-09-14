@@ -85,6 +85,10 @@ input[type=number]:focus{outline:2px solid var(--akzent);outline-offset:1px}
 .balken{height:6px;border-radius:3px;background:var(--karte2);overflow:hidden;margin-top:.35rem}
 .balken i{display:block;height:100%;background:var(--akzent)}
 footer{margin-top:1.6rem;color:var(--gedaempft);font-size:.8rem;text-align:center}
+.feld{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:.4rem}
+.feld span{font-size:.92rem}
+.feld small{display:block;color:var(--gedaempft);font-size:.78rem}
+.hinweis.warn{color:var(--warn)}
 </style>
 </head>
 <body>
@@ -134,6 +138,24 @@ footer{margin-top:1.6rem;color:var(--gedaempft);font-size:.8rem;text-align:cente
 
     </div>
     <div id="protokoll" aria-live="polite"></div>
+  </section>
+
+  <section class="karte">
+    <h2>Rhythmus</h2>
+    <label class="feld">
+      <span>Beiträge pro Tag <small>automatisch um 8:00</small></span>
+      <input type="number" id="e_beitraege" min="0" max="20" step="1">
+    </label>
+    <p class="hinweis" id="e_beitraege_hinweis"></p>
+    <label class="feld">
+      <span>Pins pro Tag <small>ab dem nächsten Pinterest-Export</small></span>
+      <input type="number" id="e_pins" min="1" max="10" step="1">
+    </label>
+    <p class="hinweis" id="e_pins_hinweis"></p>
+    <div class="steuerung" style="margin-top:.6rem">
+      <button id="e_speichern" data-aktion disabled>Speichern</button>
+      <span class="hinweis" id="e_status" style="margin:0"></span>
+    </div>
   </section>
 
   <section class="karte">
@@ -270,6 +292,8 @@ let laeuft = false;
 function sperren(an) {
   laeuft = an;
   for (const b of document.querySelectorAll('[data-aktion]')) b.disabled = an;
+  // Speichern bleibt gesperrt, solange nichts geaendert wurde.
+  if (!an && $('e_status').textContent !== 'nicht gespeichert') $('e_speichern').disabled = true;
   if (!an) offenAnzeigen(letzterStatus);
 }
 
@@ -388,6 +412,15 @@ async function laden() {
     $('fuss').textContent = 'Läuft gerade: ' + d.laeuftGerade;
   }
 
+  // Rhythmus: Felder nur beim ersten Laden fuellen, sonst ueberschreibt das
+  // Aktualisieren alle 60 Sekunden, was gerade eingetippt wird.
+  if (!rhythmusGeladen) {
+    $('e_beitraege').value = d.site.proTag ?? 2;
+    $('e_pins').value = (d.pinterest && d.pinterest.pinsProTag) || 3;
+    rhythmusGeladen = true;
+    rhythmusHinweise();
+  }
+
   // Pinterest
   const pin = d.pinterest || {};
   if (pin.fehler) {
@@ -475,6 +508,65 @@ async function laden() {
       + (d.gewichte ? ' | gelernte Gewichte vom ' + new Date(d.gewichte.updatedAt).toLocaleDateString('de-DE') : ' | noch keine gelernten Gewichte');
   }
 }
+
+let rhythmusGeladen = false;
+
+function rhythmusHinweise() {
+  const b = Number($('e_beitraege').value);
+  const p = Number($('e_pins').value);
+  const je = letzterStatus && letzterStatus.verbrauch && letzterStatus.verbrauch.schaetzungProArtikel
+    ? letzterStatus.verbrauch.schaetzungProArtikel.proArtikel.kosten : 0.085;
+
+  const hb = $('e_beitraege_hinweis');
+  hb.className = 'hinweis';
+  if (b === 0) hb.textContent = 'Pause: Die Automatik schreibt nichts, veröffentlicht aber weiter Änderungen.';
+  else {
+    hb.textContent = 'Etwa ' + zahl(b * je, 2) + ' USD Gegenwert pro Tag, rund ' + zahl(b * je * 30, 0) + ' USD im Monat. Empfohlen: 2 bis 3.';
+    if (b > 5) {
+      hb.className = 'hinweis warn';
+      hb.textContent += ' Mehr als 5 am Tag wirkt für Google schnell nach Massenware und frisst das Kontingent.';
+    }
+  }
+
+  const hp = $('e_pins_hinweis');
+  hp.className = 'hinweis';
+  const offen = (letzterStatus && letzterStatus.pinterest && letzterStatus.pinterest.offen) || 0;
+  const tage = p > 0 ? Math.floor(offen / p) : 0;
+  hp.textContent = offen
+    ? 'Die ' + offen + ' noch nicht exportierten Pins reichen damit für ' + tage + ' Tag' + (tage === 1 ? '' : 'e') + '. Empfohlen: 3 bis 5.'
+    : 'Empfohlen: 3 bis 5.';
+  if (p > 5) {
+    hp.className = 'hinweis warn';
+    hp.textContent += ' Viele Pins derselben Seite am Tag stuft Pinterest schnell als Spam ein.';
+  }
+}
+
+function rhythmusGeaendert() {
+  $('e_speichern').disabled = laeuft;
+  $('e_status').textContent = 'nicht gespeichert';
+  rhythmusHinweise();
+}
+$('e_beitraege').oninput = rhythmusGeaendert;
+$('e_pins').oninput = rhythmusGeaendert;
+
+$('e_speichern').onclick = async () => {
+  $('e_speichern').disabled = true;
+  $('e_status').textContent = 'speichere …';
+  try {
+    const r = await fetch('/api/einstellungen', {
+      method: 'POST',
+      headers: { 'x-streamtipp': '1', 'content-type': 'application/json' },
+      body: JSON.stringify({ beitraegeProTag: Number($('e_beitraege').value), pinsProTag: Number($('e_pins').value) }),
+    });
+    const e = await r.json();
+    if (!r.ok || e.fehler) throw new Error(e.fehler || 'HTTP ' + r.status);
+    $('e_status').textContent = 'gespeichert';
+    laden();
+  } catch (err) {
+    $('e_status').textContent = 'Fehler: ' + err.message;
+    $('e_speichern').disabled = false;
+  }
+};
 
 $('pin_erstellen').onclick = async () => {
   if (laeuft) return;

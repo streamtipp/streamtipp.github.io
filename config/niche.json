@@ -1,14 +1,14 @@
 {
   "niche": "Filme, Serien und Streaming im deutschsprachigen Raum",
   "audience": "Menschen, die abends etwas schauen wollen und keine Lust auf endloses Scrollen haben",
-  "voice": "direkt, konkret, ohne Werbesprache. Kurze Saetze. Keine Superlative ohne Begruendung.",
+  "voice": "direkt, konkret, ohne Werbesprache. Kurze Sätze. Keine Superlative ohne Begründung.",
   "wordTarget": 900,
   "formats": [
     {
       "id": "listicle",
       "label": "Listen",
       "hinweis": "Empfehlungen zum Durchgehen",
-      "pattern": "{n} {thing} fuer {occasion}",
+      "pattern": "{n} {thing} für {occasion}",
       "weight": 3
     },
     {
@@ -29,7 +29,7 @@
       "id": "wo-streamen",
       "label": "Wo läuft was",
       "hinweis": "Wo ein Titel zu finden ist",
-      "pattern": "Wo laeuft {thing} im Stream?",
+      "pattern": "Wo läuft {thing} im Stream?",
       "weight": 3
     }
   ],

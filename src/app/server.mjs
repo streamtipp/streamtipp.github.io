@@ -15,7 +15,7 @@ import { schaetzung, modellEinstellung } from '../llm.mjs';
 import { loadPerformance } from '../performance.mjs';
 import { loadWeights } from '../learn.mjs';
 import { offeneAenderungen, veroeffentlichen } from '../veroeffentlichen.mjs';
-import { pinterestUebersicht, pinterestExport, EXPORT_ORDNER } from '../pinterest.mjs';
+import { pinterestUebersicht, pinterestExport, EXPORT_ORDNER, uhrzeitenFuer } from '../pinterest.mjs';
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4180);
@@ -198,7 +198,13 @@ async function status() {
     aufgabe: geplanteAufgabe(),
     live: await liveStatus(site),
     veroeffentlichung: offeneAenderungen(),
-    pinterest: (() => { try { return pinterestUebersicht(); } catch (err) { return { fehler: err.message }; } })(),
+    pinterest: (() => {
+      try {
+        const cfg = loadConfig('pinterest.json');
+        const n = Math.max(1, Math.min(10, Number(cfg.pinsProTag) || 3));
+        return { ...pinterestUebersicht(), pinsProTag: n, uhrzeiten: uhrzeitenFuer(n, cfg.uhrzeiten) };
+      } catch (err) { return { fehler: err.message }; }
+    })(),
     laeuftGerade,
   };
 }
@@ -272,7 +278,7 @@ function erzeugen(sende, anzahl) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
-  const aktionen = ['/api/erzeugen', '/api/veroeffentlichen', '/api/pinterest', '/api/pinterest-ordner'];
+  const aktionen = ['/api/erzeugen', '/api/veroeffentlichen', '/api/pinterest', '/api/pinterest-ordner', '/api/einstellungen'];
   const istAktion = aktionen.includes(url.pathname);
 
   if (!vertrauenswuerdig(req, istAktion)) {
@@ -301,6 +307,43 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/erzeugen') {
       const anzahl = Math.max(1, Math.min(50, Number(url.searchParams.get('anzahl')) || 1));
       return strom(res, `Erzeugung von ${anzahl} Beitrag${anzahl === 1 ? '' : 'en'}`, (sende) => erzeugen(sende, anzahl));
+    }
+
+    // Einstellungen aus der App. Nur zwei Zahlen, jeweils mit fester Ober- und
+    // Untergrenze, damit ein Tippfehler nicht 500 Artikel am Tag ausloest.
+    if (url.pathname === '/api/einstellungen') {
+      let eingabe = {};
+      try {
+        eingabe = JSON.parse(await new Promise((resolve, reject) => {
+          let text = '';
+          req.on('data', (d) => { text += d; if (text.length > 2000) reject(new Error('zu gross')); });
+          req.on('end', () => resolve(text || '{}'));
+          req.on('error', reject);
+        }));
+      } catch {
+        return jsonAntwort(res, { fehler: 'Ungültige Eingabe' }, 400);
+      }
+
+      const geaendert = {};
+      if (eingabe.beitraegeProTag !== undefined) {
+        const n = Number(eingabe.beitraegeProTag);
+        if (!Number.isInteger(n) || n < 0 || n > 20) return jsonAntwort(res, { fehler: 'Beiträge pro Tag: ganze Zahl von 0 bis 20' }, 400);
+        const datei = path.join(ROOT, 'config', 'site.json');
+        const site = JSON.parse(fs.readFileSync(datei, 'utf8').replace(/^﻿/, ''));
+        site.postsPerDay = n;
+        fs.writeFileSync(datei, JSON.stringify(site, null, 2) + '\n');
+        geaendert.beitraegeProTag = n;
+      }
+      if (eingabe.pinsProTag !== undefined) {
+        const n = Number(eingabe.pinsProTag);
+        if (!Number.isInteger(n) || n < 1 || n > 10) return jsonAntwort(res, { fehler: 'Pins pro Tag: ganze Zahl von 1 bis 10' }, 400);
+        const datei = path.join(ROOT, 'config', 'pinterest.json');
+        const cfg = JSON.parse(fs.readFileSync(datei, 'utf8').replace(/^﻿/, ''));
+        cfg.pinsProTag = n;
+        fs.writeFileSync(datei, JSON.stringify(cfg, null, 2) + '\n');
+        geaendert.pinsProTag = n;
+      }
+      return jsonAntwort(res, { ok: true, geaendert });
     }
 
     if (url.pathname === '/api/pinterest') {

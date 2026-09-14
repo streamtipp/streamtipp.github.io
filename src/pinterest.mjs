@@ -57,6 +57,20 @@ function termin(tag, uhrzeit) {
   return lokal.toISOString().slice(0, 19);
 }
 
+// Uhrzeiten fuer n Pins am Tag. Reichen die konfigurierten nicht, werden die
+// Pins gleichmaessig zwischen 17:00 und 22:00 verteilt, wenn Leute abends
+// nach etwas zum Schauen suchen.
+export function uhrzeitenFuer(n, vorgabe = []) {
+  if (Array.isArray(vorgabe) && vorgabe.length >= n) return vorgabe.slice(0, n);
+  if (n === 1) return ['19:30'];
+  const von = 17 * 60;
+  const bis = 22 * 60;
+  return Array.from({ length: n }, (_, i) => {
+    const minute = Math.round((von + ((bis - von) * i) / (n - 1)) / 15) * 15;
+    return `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`;
+  });
+}
+
 async function online(url) {
   try {
     const ctrl = new AbortController();
@@ -149,8 +163,8 @@ export async function pinterestExport({ trocken = false, heute: nurHeute = false
   const grenze = new Date(heute);
   grenze.setDate(grenze.getDate() + (cfg.maxTageVoraus || 28));
 
-  const uhrzeiten = cfg.uhrzeiten?.length ? cfg.uhrzeiten : ['19:00'];
-  const proTag = Math.max(1, Math.min(cfg.pinsProTag || 3, uhrzeiten.length));
+  const proTag = Math.max(1, Math.min(10, Number(cfg.pinsProTag) || 3));
+  const uhrzeiten = uhrzeitenFuer(proTag, cfg.uhrzeiten);
 
   const obergrenze = Math.min(MAX_PRO_DATEI, Math.max(1, Number(max) || MAX_PRO_DATEI));
   const fruehestens = Date.now() + 15 * 60 * 1000;
