@@ -17,6 +17,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { renderMarkdown, plainExcerpt } from './markdown.mjs';
 import { injectAffiliates } from './affiliate.mjs';
 import { loadConfig, paths, readPosts, escapeHtml, log } from './util.mjs';
@@ -329,6 +330,39 @@ function nav(defs, prefix, aktuell) {
   return `<nav class="kat-nav" aria-label="Kategorien">${links.join('')}</nav>`;
 }
 
+// Einzige Ziele, die in Artikeln klickbar sein duerfen: der Affiliate-Shop.
+function affiliateHosts() {
+  try {
+    const cfg = loadConfig('affiliate.json');
+    return cfg.amazon?.domain ? [`www.${cfg.amazon.domain}`] : [];
+  } catch {
+    return [];
+  }
+}
+
+// Content-Security-Policy als Meta-Tag, weil GitHub Pages keine eigenen
+// Kopfzeilen erlaubt. Skripte laufen nur, wenn ihr Inhalt exakt dem beim Bauen
+// berechneten Hash entspricht. Rutscht trotz aller Maskierung irgendwann Code
+// in einen Artikel, fuehrt der Browser ihn nicht aus. Styles bleiben inline
+// erlaubt, weil das ganze CSS im Kopf steht und keine Daten preisgeben kann.
+function mitCsp(html) {
+  const hashes = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
+    .map((m) => `'sha256-${crypto.createHash('sha256').update(m[1], 'utf8').digest('base64')}'`);
+  const csp = [
+    "default-src 'self'",
+    `script-src ${[...new Set(hashes)].join(' ') || "'none'"}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+    "connect-src 'self'",
+    "font-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'none'",
+    'upgrade-insecure-requests',
+  ].join('; ');
+  return html.replace('<meta charset="utf-8">', `<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="${csp}">`);
+}
+
 // Vorschaubild fuer geteilte Links: das eigene des Beitrags, sonst das der
 // Startseite. Nur Dateien, die wirklich existieren, damit nie ein Link auf ein
 // fehlendes Bild zeigt.
@@ -356,7 +390,7 @@ function layout(site, defs, { title, description, canonical, body, jsonLd, prefi
 <meta name="twitter:image" content="${bild}">
 `
     : '<meta name="twitter:card" content="summary">\n';
-  return `<!doctype html>
+  return mitCsp(`<!doctype html>
 <html lang="${site.lang}">
 <head>
 <meta charset="utf-8">
@@ -405,7 +439,7 @@ ${body}
 <script>${THEMA_JS}</script>
 ${script ? `<script>${script}</script>` : ''}
 </body>
-</html>`;
+</html>`);
 }
 
 // Verwandte Beitraege: gemeinsame Themen zaehlen doppelt, gleiche Artikelform
@@ -454,7 +488,7 @@ ${post.meta.description ? `<p class="lead">${escapeHtml(post.meta.description)}<
 </div>
 </header>
 <div class="prosa">
-${renderMarkdown(withLinks)}
+${renderMarkdown(withLinks, { linkHosts: affiliateHosts() })}
 </div>
 ${tags.length ? `<div class="themen" aria-label="Themen">${tags.map((t) => `<span>${escapeHtml(t)}</span>`).join('')}</div>` : ''}
 </article>

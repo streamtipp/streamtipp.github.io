@@ -8,16 +8,36 @@
 
 import { escapeHtml } from './util.mjs';
 
+// Links werden nur zu Hosts auf dieser Liste klickbar. Der Text stammt vom
+// Modell, das fremde Feed-Meldungen verarbeitet. Eine praeparierte Meldung
+// koennte es dazu bringen, einen Phishing-Link zu schreiben, der dann unter dem
+// eigenen Impressum veroeffentlicht wuerde. Nicht erlaubte Links bleiben als
+// reiner Text stehen. Ohne Liste wird gar kein Link klickbar.
+let erlaubteHosts = new Set();
+
+function linkErsetzen(_m, text, url) {
+  let host = '';
+  try {
+    // Die URL ist hier schon HTML-maskiert, fuer die Pruefung zurueckwandeln.
+    host = new URL(url.replace(/&amp;/g, '&')).host.toLowerCase();
+  } catch {
+    return text;
+  }
+  if (!erlaubteHosts.has(host)) return text;
+  return `<a href="${url}" rel="nofollow sponsored noopener" target="_blank">${text}</a>`;
+}
+
 function inline(text) {
   let s = escapeHtml(text);
   s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
-  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" rel="nofollow sponsored noopener" target="_blank">$1</a>');
+  s = s.replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g, linkErsetzen);
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/(^|[\s(])\*([^*\n]+)\*/g, '$1<em>$2</em>');
   return s;
 }
 
-export function renderMarkdown(md) {
+export function renderMarkdown(md, { linkHosts = [] } = {}) {
+  erlaubteHosts = new Set(linkHosts.map((h) => String(h).toLowerCase()));
   const lines = md.replace(/\r\n/g, '\n').split('\n');
   const out = [];
   let para = [];
