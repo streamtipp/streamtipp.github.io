@@ -39,8 +39,10 @@ function kuerzen(text, max) {
 // Anfuehrungszeichen nur, wo sie noetig sind, so wie Excel exportiert. Die
 // erste Fassung setzte sie um jedes Feld, und Pinterest lehnte die Datei mit
 // "falsches Format" ab.
+// Führende = + - @ entfernen: Öffnet man die Datei in Excel, würde ein Titel
+// wie "=HYPERLINK(...)" sonst als Formel ausgeführt.
 function csvFeld(wert) {
-  const t = String(wert ?? '');
+  const t = String(wert ?? '').replace(/^[=+\-@\t\r\s]+/, '');
   return /[",\r\n]|^\s|\s$/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
 }
 

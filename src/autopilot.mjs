@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { ROOT, loadConfig, log } from './util.mjs';
+import { sicherStagen, pruefeVorCommit } from './schutz.mjs';
 
 const LOG_DIR = path.join(ROOT, 'logs');
 const REVIEW_WEEKDAY = 1; // Montag
@@ -117,12 +118,12 @@ async function main() {
 
   if (pushErlaubt && ready && written > 0) {
     await step('Veroeffentlichen', () => {
-      git(['add', '-A']);
-      const staged = git(['diff', '--cached', '--name-only']);
-      if (!staged) {
+      const staged = sicherStagen(git);
+      if (!staged.length) {
         journal.push('       nichts zu committen');
         return;
       }
+      pruefeVorCommit(git, site);
       git(['commit', '-m', `Automatischer Lauf ${started.toISOString().slice(0, 10)}: ${written} Beitraege`]);
       git(['push', 'origin', 'HEAD']);
     }, journal);

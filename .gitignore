@@ -1,6 +1,5 @@
 node_modules/
 dist/
-.env
 *.log
 .DS_Store
 Thumbs.db
@@ -8,3 +7,18 @@ logs/
 reports/*.md
 !reports/.gitkeep
 pinterest/
+
+# Lokaler Stand und Messdaten. Verrät Tagesrhythmus und Suchdaten, gehört
+# nicht in ein öffentliches Repository.
+data/
+
+# Alles, was nach Zugangsdaten oder Exporten aussieht
+.env*
+*.pem
+*.key
+*.p12
+*.pfx
+*.csv
+*.bundle
+*.kdbx
+.claude/

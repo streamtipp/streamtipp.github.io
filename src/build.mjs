@@ -989,7 +989,12 @@ export async function build() {
   const legalDir = path.join(paths.site, 'legal');
   for (const [file, title] of [['impressum.html', 'Impressum'], ['datenschutz.html', 'Datenschutz']]) {
     const src = path.join(legalDir, file);
-    const html = fs.existsSync(src) ? fs.readFileSync(src, 'utf8') : '<p>Fehlt.</p>';
+    // HTML-Kommentare sind Arbeitsnotizen und gehören nicht auf die Seite.
+    // Die Mailadresse als Zeichenreferenzen: Browser zeigen sie normal an,
+    // einfache Adresssammler für Spam und Phishing finden sie nicht.
+    const verschleiert = [...String(site.email || '')].map((c) => `&#${c.codePointAt(0)};`).join('');
+    let html = fs.existsSync(src) ? fs.readFileSync(src, 'utf8').replace(/<!--[\s\S]*?-->/g, '').trim() : '<p>Fehlt.</p>';
+    if (site.email) html = html.split(site.email).join(verschleiert);
     fs.writeFileSync(path.join(paths.dist, file), legalPage(site, defs, title, file, html));
   }
 

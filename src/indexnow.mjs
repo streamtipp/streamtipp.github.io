@@ -10,7 +10,9 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { paths, loadConfig, log } from './util.mjs';
+import { execFileSync } from 'node:child_process';
+import { ROOT, paths, loadConfig, log } from './util.mjs';
+import { gitBinaer } from './veroeffentlichen.mjs';
 
 const ENDPUNKT = 'https://api.indexnow.org/IndexNow';
 
@@ -21,6 +23,25 @@ function adressenAusSitemap() {
   return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 }
 
+// Die lokale Sitemap enthaelt auch Beitraege, die noch nicht gelesen und nicht
+// gepusht sind. Deren Adressen gehen Bing nichts an: Sie wuerden 404 liefern
+// und verraten vorab, woran gerade gearbeitet wird.
+function unveroeffentlichteSlugs() {
+  try {
+    const online = new Set(
+      execFileSync(gitBinaer(), ['ls-tree', '-r', '--name-only', 'origin/main', '--', 'content/posts'], { cwd: ROOT, encoding: 'utf8', windowsHide: true })
+        .split(/\r?\n/).map((f) => f.split('/').pop()).filter(Boolean)
+    );
+    return new Set(
+      fs.readdirSync(paths.posts)
+        .filter((f) => f.endsWith('.md') && !online.has(f))
+        .map((f) => f.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, ''))
+    );
+  } catch {
+    return new Set();
+  }
+}
+
 export async function melden({ trocken = false } = {}) {
   const site = loadConfig('site.json');
 
@@ -29,7 +50,8 @@ export async function melden({ trocken = false } = {}) {
     return false;
   }
 
-  const urls = adressenAusSitemap();
+  const lokal = unveroeffentlichteSlugs();
+  const urls = adressenAusSitemap().filter((u) => !lokal.has(new URL(u).pathname.replace(/^\/|\/$/g, '')));
   if (!urls.length) {
     log('indexnow', 'Keine Adressen in der Sitemap. Erst bauen.');
     return false;
@@ -44,7 +66,7 @@ export async function melden({ trocken = false } = {}) {
   };
 
   if (trocken) {
-    log('indexnow', `Trockenlauf: ${urls.length} Adressen fuer ${host} bereit.`);
+    log('indexnow', `Trockenlauf: ${urls.length} Adressen fuer ${host} bereit, ${lokal.size} lokale Beitraege zurueckgehalten.`);
     return true;
   }
 

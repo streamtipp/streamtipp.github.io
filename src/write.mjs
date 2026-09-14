@@ -104,7 +104,7 @@ export function normalizeTags(raw, erlaubt) {
   return treffer.slice(0, 3);
 }
 
-function validate(meta, body) {
+export function validate(meta, body) {
   const problems = [];
   const woerter = body.split(/\s+/).length;
   for (const f of REQUIRED_FIELDS) if (!meta[f]) problems.push(`Feld "${f}" fehlt`);
@@ -117,6 +117,19 @@ function validate(meta, body) {
   const umlaute = (`${meta.title || ''} ${meta.description || ''} ${body}`.match(/[äöüÄÖÜß]/g) || []).length;
   if (woerter >= 250 && umlaute < woerter / 60) problems.push(`Kaum Umlaute (${umlaute} bei ${woerter} Woertern)`);
   if (/<script|<iframe|javascript:/i.test(body)) problems.push('Aktives HTML im Text');
+
+  // Die Aufhänger kommen aus fremden Feeds. Wer dort Text einschleust, will
+  // meist Leser irgendwohin lotsen: Link, Mail, Telefon, Konto, Wallet. Ein
+  // Filmtipp braucht nichts davon, Partnerlinks setzt der Bot selbst.
+  const alles = `${meta.title || ''}\n${meta.description || ''}\n${body}`;
+  const kontakt = [
+    [/https?:\/\/|\bwww\.|\]\(/i, 'Link'],
+    [/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/, 'E-Mail-Adresse'],
+    [/(?:\+|\b00)\d{2}[\s\d/()-]{6,}\d|\b0\d{3,4}[\s/-]?\d{5,}/, 'Telefonnummer'],
+    [/\b[A-Z]{2}\d{2}(?:\s?[A-Z0-9]{4}){3,}/, 'Kontonummer'],
+    [/\bbc1[a-z0-9]{25,}|\b0x[a-fA-F0-9]{40}\b/, 'Wallet-Adresse'],
+  ];
+  for (const [muster, name] of kontakt) if (muster.test(alles)) problems.push(`${name} im Text`);
   return problems;
 }
 

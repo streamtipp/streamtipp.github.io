@@ -131,7 +131,12 @@ export async function discover(count) {
   const fromFeeds = [];
   for (const source of sources) {
     try {
-      const titles = extractTitles(await fetchFeed(source));
+      // Feed-Titel sind fremder Text. Spitze Klammern raus, damit niemand mit
+      // "</aufhaenger>" aus dem Datenblock im Prompt ausbrechen kann, und
+      // Länge begrenzen, weil ein echter Titel nie 200 Zeichen braucht.
+      const titles = extractTitles(await fetchFeed(source))
+        .map((t) => String(t).replace(/[<>]/g, ' ').replace(/\s+/g, ' ').trim())
+        .filter((t) => t && t.length <= 200);
       log('discover', `${source.name}: ${titles.length} Eintraege (Gewicht ${source.weight || 1})`);
       // Gewicht wirkt hier: Eintraege einer starken Quelle kommen mehrfach in
       // den Topf und werden dadurch haeufiger gezogen.

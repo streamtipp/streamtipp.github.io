@@ -10,6 +10,7 @@
 
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { loadConfig } from './util.mjs';
 
@@ -165,6 +166,27 @@ function cliOptionen() {
   return `${modell ? ` --model ${modell}` : ''}${aufwand ? ` --effort ${aufwand}` : ''}`;
 }
 
+// Abschottung des Schreib-Aufrufs. Das Modell verarbeitet fremde Feed-Texte
+// und darf deshalb nichts ausser Text zurueckgeben koennen.
+//
+// Befund vom 14.09.2026: Ohne diese Schalter bekam jeder Artikel-Aufruf den
+// vollen Werkzeugkasten von Claude Code, also Bash, PowerShell, Dateien lesen
+// und schreiben, Webabruf, und alle claude.ai-Verbindungen des Kontos, darunter
+// Gmail mit 29 Werkzeugen. In 173 Protokollen fanden sich 32 Werkzeugaufrufe,
+// alle harmlos, aber eine praeparierte Feed-Meldung haette das ausnutzen koennen.
+//
+//   --tools ""                 kein einziges eingebautes Werkzeug
+//   --strict-mcp-config        keine MCP-Server, auch nicht die von claude.ai
+//   --setting-sources ""       keine Nutzer- oder Projekteinstellungen, damit
+//                              dort freigegebene Rechte nicht greifen
+//   --disable-slash-commands   keine Skills
+//   --no-session-persistence   keine Protokolle mit Feed-Texten auf der Platte
+//   --permission-mode dontAsk  falls doch etwas angefragt wird: ablehnen
+//
+// Dazu ein frischer, leerer Arbeitsordner pro Aufruf, damit selbst ein Fehler
+// in diesen Schaltern nichts Lesbares vorfinden wuerde.
+const ABSCHOTTUNG = '--tools "" --strict-mcp-config --setting-sources "" --disable-slash-commands --no-session-persistence --permission-mode dontAsk';
+
 function viaCli(prompt) {
   const bin = claudeBinaer();
 
@@ -172,13 +194,29 @@ function viaCli(prompt) {
   // Deshalb ein fertiger Kommandostring statt getrennter Argumente: so
   // bleibt der Aufruf identisch und Node warnt nicht wegen shell + args.
   // Der Prompt geht ueber stdin, nie ueber die Kommandozeile.
-  const command = `"${bin}" -p --output-format json${cliOptionen()}`;
+  const command = `"${bin}" -p --output-format json ${ABSCHOTTUNG}${cliOptionen()}`;
+  const leererOrdner = fs.mkdtempSync(path.join(os.tmpdir(), 'streamtipp-schreiber-'));
+  const aufraeumen = () => {
+    try { fs.rmSync(leererOrdner, { recursive: true, force: true }); } catch { /* egal */ }
+    // Die CLI legt fuer jeden Arbeitsordner einen Projektordner an, auch ohne
+    // Protokoll, mit leerem "memory". Nur entfernen, wenn wirklich nichts drin ist.
+    try {
+      const projekt = path.join(os.homedir(), '.claude', 'projects', leererOrdner.replace(/[^A-Za-z0-9]/g, '-'));
+      if (/streamtipp-schreiber-/.test(projekt) && fs.existsSync(projekt)) {
+        const inhalt = fs.readdirSync(projekt, { recursive: true }).filter((f) => !fs.statSync(path.join(projekt, f)).isDirectory());
+        if (!inhalt.length) fs.rmSync(projekt, { recursive: true, force: true });
+      }
+    } catch { /* egal */ }
+  };
 
   return new Promise((resolve, reject) => {
     const child = spawn(command, [], {
       shell: true,
+      cwd: leererOrdner,
       stdio: ['pipe', 'pipe', 'pipe'],
+      windowsHide: true,
     });
+    child.on('close', aufraeumen);
 
     let out = '';
     let err = '';
@@ -218,6 +256,14 @@ function viaCli(prompt) {
 
       if (parsed.is_error) {
         return reject(new Error(`Claude-CLI meldet Fehler: ${parsed.result || parsed.subtype || 'ohne Angabe'}`));
+      }
+
+      // Zweite Sicherung: Ein reiner Textaufruf hat genau eine Runde und keine
+      // abgelehnten Werkzeuge. Alles andere heisst, das Modell hat trotz der
+      // Abschottung etwas versucht. Dann wird das Ergebnis nicht verwendet.
+      const verweigert = Array.isArray(parsed.permission_denials) ? parsed.permission_denials.length : 0;
+      if ((parsed.num_turns && parsed.num_turns > 1) || verweigert) {
+        return reject(new Error(`Werkzeugversuch erkannt (${parsed.num_turns} Runden, ${verweigert} abgelehnt), Ergebnis verworfen`));
       }
 
       const u = parsed.usage || {};

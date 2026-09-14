@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
 import { ROOT, loadConfig, parseFrontmatter } from './util.mjs';
+import { sicherStagen, pruefeVorCommit } from './schutz.mjs';
 
 const WORKFLOW_NAME = 'Seite bauen und veroeffentlichen';
 
@@ -235,9 +236,9 @@ export async function veroeffentlichen({ sende, probe = false }) {
   }
 
   try {
-    git(['add', '-A']);
-    const vorgemerkt = zeilen(git(['diff', '--cached', '--name-only']));
+    const vorgemerkt = sicherStagen(git);
     if (vorgemerkt.length) {
+      pruefeVorCommit(git, loadConfig('site.json'));
       const betreff = vorher.neu
         ? `Veröffentlicht über die App: ${vorher.neu} neue${vorher.neu === 1 ? 'r' : ''} Beitr${vorher.neu === 1 ? 'ag' : 'äge'}`
         : 'Veröffentlicht über die App';
