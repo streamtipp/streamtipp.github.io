@@ -6,7 +6,7 @@
   "baseUrl": "https://streamtipp.github.io",
   "author": "Manuel Lorenz",
   "email": "manuellorenz549@gmail.com",
-  "postsPerDay": 10,
+  "postsPerDay": 5,
   "maxPostsOnIndex": 30,
   "autopush": true,
   "modell": "sonnet",
