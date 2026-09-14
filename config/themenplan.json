@@ -77,6 +77,30 @@
       "ab": "06-01",
       "bis": "08-31",
       "anlass": "Sommer"
+    },
+    {
+      "titel": "Freiluftkino im Garten: So gelingt der Beamer-Abend im Sommer",
+      "form": "guide",
+      "ab": "05-01",
+      "bis": "08-15",
+      "anlass": "Sommer",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Heimkino-Technik zum Black Friday: Worauf du bei Angeboten achten solltest",
+      "form": "guide",
+      "ab": "11-05",
+      "bis": "11-30",
+      "anlass": "Black Friday",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Geschenke für Filmfans: Ideen vom Soundbar-Upgrade bis zur Blu-ray-Box",
+      "form": "listicle",
+      "ab": "11-01",
+      "bis": "12-20",
+      "anlass": "Weihnachten",
+      "kaufberatung": true
     }
   ],
   "evergreen": [
@@ -211,6 +235,97 @@
     {
       "titel": "Ein Abo teilen, ohne die Regeln zu brechen",
       "form": "guide"
+    },
+    {
+      "titel": "Beamer kaufen: Worauf du fürs Heimkino wirklich achten musst",
+      "form": "guide",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Soundbar für die Mietwohnung: guter Ton, ohne die Nachbarn zu stören",
+      "form": "guide",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Beamer-Leinwand oder weiße Wand: Was das Bild wirklich besser macht",
+      "form": "vergleich",
+      "kaufberatung": true
+    },
+    {
+      "titel": "AV-Receiver fürs Heimkino: Wann er sich lohnt und worauf du achten solltest",
+      "form": "guide",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Subwoofer nachrüsten: So bekommt dein Heimkino mehr Bass",
+      "form": "guide",
+      "kaufberatung": true
+    },
+    {
+      "titel": "TV-Kopfhörer: Filme spätabends laut schauen, ohne jemanden zu wecken",
+      "form": "guide",
+      "kaufberatung": true
+    },
+    {
+      "titel": "HDMI-Kabel für 4K und 120 Hz: Was du wirklich brauchst",
+      "form": "guide",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Mini-Beamer oder großer Beamer: Was passt zu deinem Filmabend?",
+      "form": "vergleich",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Kinoatmosphäre zu Hause: Licht, Sitzplatz und Popcornmaschine",
+      "form": "listicle",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Fernseher an die Wand: Die passende Wandhalterung auswählen",
+      "form": "guide",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Hintergrundbeleuchtung für den Fernseher: Was Bias Lighting bringt",
+      "form": "guide",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Eigener Blu-ray-Player: Für wen sich das Gerät noch lohnt",
+      "form": "vergleich",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Streaming-Stick für den alten Fernseher: So wird er wieder smart",
+      "form": "guide",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Universalfernbedienung: Schluss mit fünf Fernbedienungen am Couchtisch",
+      "form": "guide",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Heimkino Schritt für Schritt: Die richtige Reihenfolge beim Kaufen",
+      "form": "guide",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Heimkino im Schlafzimmer: Beamer an die Decke oder kleiner Fernseher?",
+      "form": "vergleich",
+      "kaufberatung": true
+    },
+    {
+      "titel": "4K-Blu-rays sammeln: So startest du eine eigene Filmsammlung",
+      "form": "guide",
+      "kaufberatung": true
+    },
+    {
+      "titel": "Kinoabend für Kinder zu Hause: Was du dafür brauchst",
+      "form": "listicle",
+      "kaufberatung": true
     }
-  ]
+  ],
+  "kaufberatungHinweis": "Dies ist eine Kaufberatung. Erkläre, worauf es beim Kauf ankommt, welche Fehlkäufe häufig sind und für wen welche Lösung passt. Nenne keine konkreten Modelle, keine Preise, keine Messwerte und keine Testergebnisse. Nenne die Geräte beim üblichen Namen, etwa Beamer, Soundbar, AV-Receiver oder Streaming-Stick."
 }

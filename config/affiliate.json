@@ -7,11 +7,67 @@
   },
   "disclosure": "Werbung: Dieser Beitrag enthält Affiliate-Links. Kaufst du darüber, bekomme ich eine Provision, für dich ändert sich der Preis nicht. Als Amazon-Partner verdiene ich an qualifizierten Verkäufen.",
   "productSlots": [
-    { "keyword": "Beamer", "query": "beamer full hd wohnzimmer" },
-    { "keyword": "Soundbar", "query": "soundbar tv" },
-    { "keyword": "Streaming-Stick", "query": "streaming stick 4k" },
-    { "keyword": "Blu-ray-Player", "query": "blu ray player 4k" },
-    { "keyword": "Blu-ray", "query": "blu ray film" },
-    { "keyword": "Leinwand", "query": "beamer leinwand", "nurMit": "Beamer" }
-  ]
+    {
+      "keyword": "Mini-Beamer",
+      "query": "mini beamer"
+    },
+    {
+      "keyword": "Beamer",
+      "query": "beamer full hd wohnzimmer"
+    },
+    {
+      "keyword": "Soundbar",
+      "query": "soundbar tv"
+    },
+    {
+      "keyword": "AV-Receiver",
+      "query": "av receiver dolby atmos"
+    },
+    {
+      "keyword": "Subwoofer",
+      "query": "subwoofer heimkino"
+    },
+    {
+      "keyword": "TV-Kopfhörer",
+      "query": "funkkopfhörer fernseher"
+    },
+    {
+      "keyword": "Streaming-Stick",
+      "query": "streaming stick 4k"
+    },
+    {
+      "keyword": "HDMI-Kabel",
+      "query": "hdmi 2.1 kabel"
+    },
+    {
+      "keyword": "Wandhalterung",
+      "query": "tv wandhalterung"
+    },
+    {
+      "keyword": "Hintergrundbeleuchtung",
+      "query": "tv led hintergrundbeleuchtung"
+    },
+    {
+      "keyword": "Universalfernbedienung",
+      "query": "universalfernbedienung"
+    },
+    {
+      "keyword": "Popcornmaschine",
+      "query": "popcornmaschine"
+    },
+    {
+      "keyword": "Blu-ray-Player",
+      "query": "blu ray player 4k"
+    },
+    {
+      "keyword": "Blu-ray",
+      "query": "blu ray film"
+    },
+    {
+      "keyword": "Leinwand",
+      "query": "beamer leinwand",
+      "nurMit": "Beamer"
+    }
+  ],
+  "maxLinks": 4
 }

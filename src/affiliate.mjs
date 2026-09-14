@@ -24,15 +24,19 @@ export function injectAffiliates(markdown) {
   const linked = [];
   const lines = markdown.split('\n');
 
+  const maxLinks = Number.isInteger(cfg.maxLinks) ? cfg.maxLinks : 4;
+
   for (const slot of cfg.productSlots) {
+    if (linked.length >= maxLinks) break;
     if (linked.includes(slot.keyword)) continue;
     // "Leinwand" meint in Filmtexten meist das Kino. Nur verlinken, wenn der
     // Beitrag auch wirklich von Beamern handelt.
     if (slot.nurMit && !new RegExp(escapeRe(slot.nurMit), 'i').test(markdown)) continue;
 
     // Wortgrenze von Hand, damit Umlaute nicht als Grenze zaehlen. Ein
-    // Bindestrich danach zaehlt als Wortteil: "Blu-ray-Player" ist kein Film.
-    const re = new RegExp(`(^|[^\\[\\wäöüß])(${escapeRe(slot.keyword)})(?![\\wäöüß\\]-])`, 'i');
+    // Bindestrich davor oder danach zaehlt als Wortteil: "Blu-ray-Player" ist
+    // kein Film, "Mini-Beamer" hat einen eigenen Link.
+    const re = new RegExp(`(^|[^\\[\\wäöüß-])(${escapeRe(slot.keyword)})(?![\\wäöüß\\]-])`, 'i');
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];

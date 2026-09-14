@@ -93,14 +93,19 @@ function planThemen(formats) {
   const heute = new Date();
   const formOder = (id) => formats.find((f) => f.id === id) || formats[0];
 
+  // Kaufberatungen bekommen eine eigene Schreibregel mit und kommen vor den
+  // übrigen zeitlosen Themen dran: Nur sie führen Leser zu Produkten, und nur
+  // darüber verdient die Seite etwas.
+  const hinweis = (e) => (e.kaufberatung ? plan.kaufberatungHinweis : undefined);
+
   const saisonal = (plan.saisonal || [])
     .filter((e) => imFenster(e, heute))
-    .map((e) => ({ hook: e.titel, origin: 'plan', anlass: e.anlass, format: formOder(e.form) }));
+    .map((e) => ({ hook: e.titel, origin: 'plan', anlass: e.anlass, hinweis: hinweis(e), format: formOder(e.form) }));
 
   const evergreen = (plan.evergreen || [])
-    .map((e) => ({ hook: e.titel, origin: 'plan', format: formOder(e.form) }));
+    .map((e) => ({ hook: e.titel, origin: 'plan', hinweis: hinweis(e), format: formOder(e.form) }));
 
-  return [...saisonal, ...shuffle(evergreen)];
+  return [...saisonal, ...shuffle(evergreen.filter((e) => e.hinweis)), ...shuffle(evergreen.filter((e) => !e.hinweis))];
 }
 
 export async function discover(count) {
