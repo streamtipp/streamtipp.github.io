@@ -300,9 +300,9 @@ export async function vorschauenErzeugen({ site, posts, labelFor }) {
     benoetigt.add(p.slug);
     const daten = {
       titel: p.meta.title,
-      kategorie: labelFor(p.meta.format),
-      symbol: glyphFor(p).w,
-      v: variante(p.slug),
+      kategorie: p.cover?.label || labelFor(p.meta.format),
+      symbol: p.cover?.symbol || glyphFor(p).w,
+      v: Number.isInteger(p.cover?.v) ? p.cover.v : variante(p.slug),
       marke: site.title,
       domain,
     };

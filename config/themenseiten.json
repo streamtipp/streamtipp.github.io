@@ -1,0 +1,29 @@
+{
+  "hinweis": "Sammelseiten unter /thema/<slug>/. Beitraege werden von Hand zugeordnet, damit nichts Unpassendes auf der Seite landet. ab und bis (MM-TT) steuern, wann die Seite auf der Startseite beworben wird; erreichbar ist sie immer. farbe ist der Index der Plakatfarbe (0 Samtrot, 1 Pflaume, 2 Petrol, 3 Bernstein, 4 Nachtblau, 5 Weinrot), symbol ein Name aus src/design.mjs.",
+  "seiten": [
+    {
+      "slug": "halloween",
+      "titel": "Halloween: Gruselfilme und Serien für den Oktober",
+      "kurztitel": "Halloween",
+      "untertitel": "Von Gänsehaut ohne Blut bis Stephen King: alle Grusel-Tipps an einem Ort, sortiert nach Stimmung.",
+      "einleitung": [
+        "Nicht jeder Halloween-Abend braucht einen Schocker. Manche wollen sich nur ein bisschen gruseln und danach noch schlafen können, andere suchen genau das Gegenteil. Deshalb steht hier alles zusammen, was auf Streamtipp zum Thema passt, vom atmosphärischen Film bis zur Serie für mehrere dunkle Abende.",
+        "Ein Tipp vorab: Entscheide zuerst, wie viel Zeit du hast. Für einen einzelnen Abend passt ein Film besser als eine Serie, bei der du nach der ersten Folge hängen bleibst. Und prüfe vor dem Start kurz in der App deines Streamingdienstes, ob der Titel gerade dort läuft. Kataloge wechseln oft, gerade im Oktober."
+      ],
+      "ab": "09-10",
+      "bis": "10-31",
+      "farbe": 3,
+      "symbol": "mond",
+      "beitraege": [
+        "gruselig-aber-nicht-brutal-filme-fuer-halloween-und-danach",
+        "6-stephen-king-serien-fuer-einen-grusel-serienabend",
+        "horrorserien-zur-spooky-season-so-findet-ihr-die-richtige",
+        "fuenf-mystery-serien-aus-deutschland-fuer-einen-dunklen-abend",
+        "wo-laeuft-it-welcome-to-derry-im-stream",
+        "stephen-king-verfilmungen-der-praktische-leitfaden",
+        "mystery-serien-aus-deutschland-wo-sie-im-stream-laufen",
+        "sci-fi-oder-horror-auf-netflix-was-lohnt-sich-2026"
+      ]
+    }
+  ]
+}

@@ -172,6 +172,27 @@ ${VARIANTEN.map(([c1, c2], i) => `.v${i}{--c1:${c1};--c2:${c2}}`).join('\n')}
 a.chip:hover{background:var(--bg-3)}
 .leer{color:var(--gedaempft)}
 
+/* Sammlungen */
+.thema-band{margin:0 0 clamp(2.4rem,5vw,3.2rem)}
+.thema-band a{display:grid;grid-template-columns:4.6rem minmax(0,1fr) auto;gap:1.1rem;align-items:center;padding:.9rem 1.2rem .9rem .9rem;
+  border-radius:16px;text-decoration:none;color:inherit;background:linear-gradient(100deg,var(--bg-2),var(--bg-3));border:1px solid var(--linie);box-shadow:var(--schatten)}
+.thema-band .cover.mini{aspect-ratio:1;border-radius:11px}
+.thema-band .cover.mini .glyph svg{width:1.7rem;height:1.7rem}
+.thema-text{display:flex;flex-direction:column;gap:.15rem;min-width:0}
+.thema-text small{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.thema-text strong{font:700 clamp(1.1rem,1rem + .5vw,1.35rem)/1.2 var(--display);letter-spacing:.005em}
+.thema-text span{font-size:.88rem;color:var(--gedaempft);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.thema-pfeil{font-size:1.4rem;color:var(--akzent);transition:transform .2s}
+.thema-band a:hover .thema-pfeil{transform:translateX(4px)}
+.thema-band a:hover strong{color:var(--akzent)}
+@media (max-width:639px){.thema-band a{grid-template-columns:3.6rem minmax(0,1fr)}.thema-pfeil{display:none}}
+.sammlung-hinweis{display:block;max-width:42rem;margin:1.6rem 0 0;padding:.9rem 1.1rem;border-radius:12px;text-decoration:none;color:inherit;
+  background:var(--hinweis);border:1px solid var(--linie);border-left:3px solid var(--gold)}
+.sammlung-hinweis small{display:block;font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.sammlung-hinweis strong{font-weight:600}
+.sammlung-hinweis:hover strong{color:var(--akzent)}
+.thema-intro{margin-bottom:clamp(2rem,4vw,2.8rem)}
+
 /* Beitrag */
 .beitrag-kopf{display:grid;grid-template-columns:clamp(8.5rem,16vw,11.5rem) minmax(0,1fr);gap:clamp(1.2rem,3vw,2.2rem);align-items:end;margin:clamp(1.4rem,4vw,2.6rem) 0 clamp(1.6rem,4vw,2.4rem)}
 .cover.poster{aspect-ratio:2/3;border-radius:14px;box-shadow:var(--schatten)}
@@ -297,7 +318,136 @@ function glyphHtml(g) {
 }
 
 function coverHtml(post, defs, klasse = '', inhalt = '') {
+  // Sammelseiten legen Farbe, Symbol und Beschriftung selbst fest.
+  if (post.cover) {
+    const g = { t: 'i', w: post.cover.symbol || 'ticket' };
+    const v = Number.isInteger(post.cover.v) ? post.cover.v : variante(post.slug);
+    return `<div class="cover v${v}${klasse ? ` ${klasse}` : ''}"><span class="kat">${escapeHtml(post.cover.label || 'Sammlung')}</span>${glyphHtml(g)}${inhalt}</div>`;
+  }
   return `<div class="cover v${variante(post.slug)}${klasse ? ` ${klasse}` : ''}"><span class="kat">${escapeHtml(labelFor(defs, post.meta.format))}</span>${glyphHtml(glyphFor(post))}${inhalt}</div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Sammelseiten unter /thema/<slug>/. Sie buendeln Beitraege zu einem Anlass.
+// Eine Sammelseite rankt fuer breite Suchen wie "Halloween Filme" besser als
+// jeder einzelne Artikel, und die Querverweise staerken alle beteiligten Seiten.
+
+let THEMEN = [];
+
+function heuteMonatTag() {
+  const d = new Date();
+  return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function themaAktiv(t) {
+  if (!t.ab || !t.bis) return true;
+  const tag = heuteMonatTag();
+  return t.ab <= t.bis ? tag >= t.ab && tag <= t.bis : tag >= t.ab || tag <= t.bis;
+}
+
+function themenLaden(posts) {
+  let cfg;
+  try {
+    cfg = loadConfig('themenseiten.json');
+  } catch {
+    return [];
+  }
+  const nachSlug = new Map(posts.map((p) => [p.slug, p]));
+  return (cfg.seiten || []).map((t) => {
+    const fehlend = (t.beitraege || []).filter((s) => !nachSlug.has(s));
+    if (fehlend.length) log('thema', `${t.slug}: ${fehlend.length} zugeordnete Beiträge fehlen (${fehlend.join(', ')})`);
+    return {
+      ...t,
+      posts: (t.beitraege || []).map((s) => nachSlug.get(s)).filter(Boolean),
+      // Tut fuer Plakat, Vorschaubild und Pin so, als waere es ein Beitrag.
+      pseudo: {
+        slug: `thema-${t.slug}`,
+        meta: { title: t.titel, description: t.untertitel, format: 'sammlung' },
+        body: (t.einleitung || []).join(' '),
+        cover: { v: t.farbe, symbol: t.symbol, label: 'Sammlung' },
+      },
+    };
+  }).filter((t) => t.posts.length);
+}
+
+function themenFuerBeitrag(slug) {
+  return THEMEN.filter((t) => t.posts.some((p) => p.slug === slug));
+}
+
+function themaSeite(site, defs, t) {
+  const canonical = `${site.baseUrl}/thema/${t.slug}/`;
+  const gruppen = defs
+    .map((d) => ({ d, eigene: t.posts.filter((p) => p.meta.format === d.id) }))
+    .filter((g) => g.eigene.length);
+
+  const body = `<header class="beitrag-kopf">
+${coverHtml(t.pseudo, defs, 'poster')}
+<div>
+<span class="chip">Sammlung</span>
+<h1>${escapeHtml(t.titel)}</h1>
+<p class="lead">${escapeHtml(t.untertitel || '')}</p>
+<p class="meta">${t.posts.length} Beiträge</p>
+</div>
+</header>
+<div class="prosa thema-intro">
+${(t.einleitung || []).map((a) => `<p>${escapeHtml(a)}</p>`).join('\n')}
+</div>
+${gruppen.map((g) => `<section class="reihe" aria-labelledby="gruppe-${g.d.id}">
+<div class="abschnitt-kopf"><div><h2 id="gruppe-${g.d.id}">${escapeHtml(g.d.label)}</h2>${g.d.hinweis ? `<p>${escapeHtml(g.d.hinweis)}</p>` : ''}</div></div>
+<div class="raster">${g.eigene.map((p) => karte(site, defs, p, '../../')).join('')}</div>
+</section>`).join('\n')}
+<a class="zurueck" href="../../">← Alle Beiträge</a>`;
+
+  const bild = bildFuer(site, t.pseudo.slug);
+  return layout(site, defs, {
+    title: `${t.titel} - ${site.title}`,
+    description: t.untertitel || t.titel,
+    canonical,
+    prefix: '../../',
+    body,
+    bild: bild?.url,
+    bildAlt: `Sammlung: ${t.titel}`,
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: t.titel,
+        description: t.untertitel,
+        url: canonical,
+        inLanguage: site.lang,
+        ...(bild ? { image: [bild.url] } : {}),
+        mainEntity: {
+          '@type': 'ItemList',
+          numberOfItems: t.posts.length,
+          itemListElement: t.posts.map((p, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            url: `${site.baseUrl}/${p.slug}/`,
+            name: p.meta.title,
+          })),
+        },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: site.title, item: `${site.baseUrl}/` },
+          { '@type': 'ListItem', position: 2, name: t.kurztitel || t.titel },
+        ],
+      },
+    ],
+  });
+}
+
+// Werbeband auf der Startseite, solange das Zeitfenster eines Themas offen ist.
+function themaBaender(site, defs, prefix) {
+  return THEMEN.filter(themaAktiv).map((t) => `<section class="thema-band" aria-label="Sammlung ${escapeHtml(t.kurztitel || t.titel)}">
+<a href="${prefix}thema/${t.slug}/">
+${coverHtml(t.pseudo, defs, 'mini')}
+<span class="thema-text"><small>Sammlung · ${t.posts.length} Tipps</small><strong>${escapeHtml(t.titel)}</strong><span>${escapeHtml(t.untertitel || '')}</span></span>
+<span class="thema-pfeil" aria-hidden="true">→</span>
+</a>
+</section>`).join('\n');
 }
 
 function lesezeit(body) {
@@ -491,6 +641,7 @@ ${post.meta.description ? `<p class="lead">${escapeHtml(post.meta.description)}<
 ${renderMarkdown(withLinks, { linkHosts: affiliateHosts() })}
 </div>
 ${tags.length ? `<div class="themen" aria-label="Themen">${tags.map((t) => `<span>${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+${themenFuerBeitrag(post.slug).map((t) => `<a class="sammlung-hinweis" href="../thema/${t.slug}/"><small>Teil der Sammlung</small><strong>${escapeHtml(t.kurztitel || t.titel)}: alle ${t.posts.length} Tipps ansehen →</strong></a>`).join('\n')}
 </article>
 ${verwandt.length ? `<section class="reihe verwandt" aria-labelledby="verwandt">
 <div class="abschnitt-kopf"><h2 id="verwandt">Passt dazu</h2></div>
@@ -595,7 +746,7 @@ ${programm.length ? `<aside class="programm" aria-labelledby="programm">
     description: site.description,
     canonical: `${site.baseUrl}/`,
     aktuell: 'start',
-    body: `${intro}\n${buehne}\n${reihen}`,
+    body: `${intro}\n${buehne}\n${themaBaender(site, defs, '')}\n${reihen}`,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
@@ -738,6 +889,10 @@ function llmsTxt(site, defs, posts) {
     return `## ${d.label}\n\n${d.hinweis ? `${d.hinweis}.\n\n` : ''}${zeilen}\n`;
   }).filter(Boolean).join('\n');
 
+  const sammlungen = THEMEN.length
+    ? `## Sammlungen\n\n${THEMEN.map((t) => `- [${t.titel}](${site.baseUrl}/thema/${t.slug}/): ${t.untertitel || ''}`).join('\n')}\n\n`
+    : '';
+
   return `# ${site.title}
 
 > ${site.description}
@@ -751,7 +906,7 @@ Betreiber: ${site.author}. Beiträge mit Affiliate-Links sind am Textanfang als
 Werbung gekennzeichnet. Die Texte entstehen mit Unterstützung eines
 Sprachmodells und werden redaktionell geprüft.
 
-${kapitel}
+${sammlungen}${kapitel}
 ## Weiteres
 
 - [Suche](${site.baseUrl}/suche/): alle Beiträge durchsuchen
@@ -765,6 +920,7 @@ function sitemap(site, defs, posts) {
     `${site.baseUrl}/`,
     `${site.baseUrl}/suche/`,
     ...defs.map((d) => `${site.baseUrl}/kategorie/${d.id}/`),
+    ...THEMEN.map((t) => `${site.baseUrl}/thema/${t.slug}/`),
     ...posts.map((p) => `${site.baseUrl}/${p.slug}/`),
   ];
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -777,10 +933,12 @@ export async function build() {
   const site = loadConfig('site.json');
   const defs = formatDefs(loadConfig('niche.json'));
   const posts = readPosts();
+  THEMEN = themenLaden(posts);
 
   // Zuerst die Bilder, damit die Seiten beim Bauen schon wissen, welche es gibt.
+  // Sammelseiten bekommen ihre Bilder ueber denselben Weg wie Beitraege.
   try {
-    await vorschauenErzeugen({ site, posts, labelFor: (id) => labelFor(defs, id) });
+    await vorschauenErzeugen({ site, posts: [...posts, ...THEMEN.map((t) => t.pseudo)], labelFor: (id) => labelFor(defs, id) });
   } catch (err) {
     log('vorschau', `übersprungen: ${err.message}`);
   }
@@ -815,6 +973,12 @@ export async function build() {
     const dir = path.join(paths.dist, 'kategorie', def.id);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'index.html'), categoryPage(site, defs, def, posts));
+  }
+
+  for (const t of THEMEN) {
+    const dir = path.join(paths.dist, 'thema', t.slug);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'index.html'), themaSeite(site, defs, t));
   }
 
   const sucheDir = path.join(paths.dist, 'suche');

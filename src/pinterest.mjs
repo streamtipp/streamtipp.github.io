@@ -83,10 +83,24 @@ async function online(url) {
   }
 }
 
+// Sammelseiten als Pins. Sie kommen im Export vor den Beitraegen, weil ein Pin,
+// der auf eine ganze Sammlung zeigt, mehr Grund zum Klicken liefert.
+function sammlungenAlsBeitraege() {
+  try {
+    return (loadConfig('themenseiten.json').seiten || []).map((t) => ({
+      slug: `thema-${t.slug}`,
+      pfad: `thema/${t.slug}/`,
+      meta: { title: t.titel, description: t.untertitel, format: 'sammlung', tags: [t.kurztitel].filter(Boolean), source: 'plan' },
+    }));
+  } catch {
+    return [];
+  }
+}
+
 // Wie viele Beitraege koennten in die naechste Datei? Ohne Netzwerk, fuer die App.
 export function pinterestUebersicht() {
   const stand = standLaden();
-  const posts = readPosts();
+  const posts = [...sammlungenAlsBeitraege(), ...readPosts()];
   const mitBild = posts.filter((p) => fs.existsSync(pinDatei(p.slug)));
   const offen = mitBild.filter((p) => !stand.exportiert[p.slug]);
   let letzteDatei = null;
@@ -114,7 +128,7 @@ export async function pinterestExport({ trocken = false, heute: nurHeute = false
   const niche = loadConfig('niche.json');
   const cfg = loadConfig('pinterest.json');
   const stand = standLaden();
-  const posts = readPosts();
+  const posts = [...sammlungenAlsBeitraege(), ...readPosts()];
 
   // Suchbegriffe, nach denen auf Pinterest wirklich gesucht wird. Die
   // Kategorienamen der Seite wie "Listen" taugen dafuer nicht.
@@ -139,7 +153,7 @@ export async function pinterestExport({ trocken = false, heute: nurHeute = false
 
   // Listen zuerst, weil sie auf Pinterest am besten funktionieren. Danach die
   // zeitlosen Themen aus dem eigenen Plan, dann der Rest. Jeweils neueste zuerst.
-  const rang = (p) => (p.meta.format === 'listicle' ? 0 : 1) * 2 + (p.meta.source === 'plan' ? 0 : 1);
+  const rang = (p) => (p.meta.format === 'sammlung' ? -10 : 0) + (p.meta.format === 'listicle' ? 0 : 1) * 2 + (p.meta.source === 'plan' ? 0 : 1);
   bereit.sort((a, b) => rang(a) - rang(b) || String(b.meta.date).localeCompare(String(a.meta.date)));
   if (Array.isArray(auswahl) && auswahl.length) {
     const reihenfolge = new Map(auswahl.map((s, i) => [s, i]));
@@ -194,7 +208,7 @@ export async function pinterestExport({ trocken = false, heute: nurHeute = false
       bild: `${site.baseUrl}/pins/${p.slug}.jpg`,
       pinnwand: cfg.pinnwaende?.[p.meta.format] || 'Filmtipps',
       beschreibung: kuerzen(`${p.meta.description || ''} ${cfg.abschluss || ''}`, 500),
-      link: `${site.baseUrl}/${p.slug}/`,
+      link: `${site.baseUrl}/${p.pfad || `${p.slug}/`}`,
       termin: pinTermin,
       keywords: [...new Set([...tags, label(p.meta.format)])].join(', '),
     });
