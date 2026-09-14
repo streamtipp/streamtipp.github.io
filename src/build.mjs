@@ -584,7 +584,7 @@ ${body}
 <footer class="fuss"><div class="wrap fuss-innen">
 <a class="marke" href="${start}">${markeHtml(site.title)}</a>
 <nav aria-label="Weitere Seiten"><a href="${prefix}suche/">Suche</a><a href="${prefix}feed.xml">RSS</a><a href="${prefix}impressum.html">Impressum</a><a href="${prefix}datenschutz.html">Datenschutz</a></nav>
-<p>Beiträge mit Affiliate-Links sind am Textanfang als Werbung gekennzeichnet.</p>
+<p>Beiträge mit Affiliate-Links sind am Textanfang als Werbung gekennzeichnet. Als Amazon-Partner verdiene ich an qualifizierten Verkäufen.</p>
 </div></footer>
 <script>${THEMA_JS}</script>
 ${script ? `<script>${script}</script>` : ''}
