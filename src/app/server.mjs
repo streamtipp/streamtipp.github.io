@@ -41,6 +41,19 @@ function vertrauenswuerdig(req, mitAktion) {
   return true;
 }
 
+// Der Profil-Link landet als href in der App. Nur echte Pinterest-Adressen
+// zulassen, sonst liesse sich dort ein javascript:- oder Phishing-Link ablegen.
+function pinterestProfil(roh) {
+  try {
+    const u = new URL(String(roh || '').trim());
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return '';
+    if (!/^([a-z]{2,3}\.)?pinterest\.(com|at|de|ch|co\.uk|fr|it|es|nl|pt|se|dk|ie)$/i.test(u.hostname) || u.username || u.password || u.port) return '';
+    return `https://${u.hostname.toLowerCase()}${u.pathname}`.slice(0, 200);
+  } catch {
+    return '';
+  }
+}
+
 function jsonAntwort(res, daten, code = 200) {
   const koerper = JSON.stringify(daten);
   res.writeHead(code, {
@@ -202,7 +215,7 @@ async function status() {
       try {
         const cfg = loadConfig('pinterest.json');
         const n = Math.max(1, Math.min(10, Number(cfg.pinsProTag) || 3));
-        return { ...pinterestUebersicht(), pinsProTag: n, uhrzeiten: uhrzeitenFuer(n, cfg.uhrzeiten) };
+        return { ...pinterestUebersicht(), pinsProTag: n, uhrzeiten: uhrzeitenFuer(n, cfg.uhrzeiten), profil: pinterestProfil(cfg.profil) };
       } catch (err) { return { fehler: err.message }; }
     })(),
     laeuftGerade,
@@ -342,6 +355,16 @@ const server = http.createServer(async (req, res) => {
         cfg.pinsProTag = n;
         fs.writeFileSync(datei, JSON.stringify(cfg, null, 2) + '\n');
         geaendert.pinsProTag = n;
+      }
+      if (eingabe.pinterestProfil !== undefined) {
+        const roh = String(eingabe.pinterestProfil).trim();
+        const profil = roh ? pinterestProfil(roh) : '';
+        if (roh && !profil) return jsonAntwort(res, { fehler: 'Bitte einen Link zu pinterest.com einfügen, z. B. https://www.pinterest.com/deinname/' }, 400);
+        const datei = path.join(ROOT, 'config', 'pinterest.json');
+        const cfg = JSON.parse(fs.readFileSync(datei, 'utf8').replace(/^﻿/, ''));
+        if (profil) cfg.profil = profil; else delete cfg.profil;
+        fs.writeFileSync(datei, JSON.stringify(cfg, null, 2) + '\n');
+        geaendert.pinterestProfil = profil;
       }
       return jsonAntwort(res, { ok: true, geaendert });
     }

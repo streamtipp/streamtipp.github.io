@@ -56,6 +56,13 @@ button.bestaetigen{background:var(--warn)}
 input[type=number]{font:inherit;width:5.5rem;padding:.58rem .7rem;border-radius:9px;
   background:var(--bg);border:1px solid var(--linie);color:var(--text);text-align:center}
 input[type=number]:focus{outline:2px solid var(--akzent);outline-offset:1px}
+input[type=url]{font:inherit;width:100%;min-width:0;padding:.58rem .7rem;border-radius:9px;
+  background:var(--bg);border:1px solid var(--linie);color:var(--text)}
+input[type=url]:focus{outline:2px solid var(--akzent);outline-offset:1px}
+a.knopf{font-weight:600;color:#1b1524;background:var(--akzent);border-radius:9px;padding:.62rem 1.15rem;text-decoration:none}
+a.knopf:hover{filter:brightness(1.08)}
+.profil{margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--linie)}
+.profil label{display:block;font-size:.92rem;margin-bottom:.4rem}
 
 .schaetzung{margin-top:1rem;padding:.85rem 1rem;background:var(--bg);border:1px solid var(--linie);
   border-radius:10px;display:flex;flex-wrap:wrap;gap:1.4rem}
@@ -166,6 +173,15 @@ footer{margin-top:1.6rem;color:var(--gedaempft);font-size:.8rem;text-align:cente
       <button class="zweit" id="pin_ordner" data-aktion>Ordner öffnen</button>
     </div>
     <div id="pin_ergebnis" class="hinweis"></div>
+    <div class="profil">
+      <label for="pin_profil">Dein Pinterest-Profil</label>
+      <input type="url" id="pin_profil" maxlength="200" placeholder="https://www.pinterest.com/deinname/" autocomplete="off" spellcheck="false">
+      <div class="steuerung" style="margin-top:.6rem">
+        <a class="knopf" id="pin_oeffnen" href="#" target="_blank" rel="noopener noreferrer" hidden>Pinterest öffnen</a>
+        <button class="zweit" id="pin_profil_speichern" data-aktion>Link speichern</button>
+        <span class="hinweis" id="pin_profil_status" style="margin:0"></span>
+      </div>
+    </div>
   </section>
 
   <section class="karte">
@@ -423,6 +439,14 @@ async function laden() {
 
   // Pinterest
   const pin = d.pinterest || {};
+  // Das Feld nur beim ersten Laden befüllen, sonst überschreibt die
+  // regelmäßige Aktualisierung eine halb getippte Eingabe.
+  if (!profilGeladen) {
+    $('pin_profil').value = pin.profil || '';
+    profilGeladen = true;
+  }
+  $('pin_oeffnen').hidden = !pin.profil;
+  if (pin.profil) $('pin_oeffnen').href = pin.profil;
   if (pin.fehler) {
     $('pin_inhalt').innerHTML = '<p class="leer">' + esc(pin.fehler) + '</p>';
   } else {
@@ -565,6 +589,30 @@ $('e_speichern').onclick = async () => {
   } catch (err) {
     $('e_status').textContent = 'Fehler: ' + err.message;
     $('e_speichern').disabled = false;
+  }
+};
+
+let profilGeladen = false;
+
+$('pin_profil_speichern').onclick = async () => {
+  const knopf = $('pin_profil_speichern');
+  knopf.disabled = true;
+  $('pin_profil_status').textContent = 'speichere …';
+  try {
+    const r = await fetch('/api/einstellungen', {
+      method: 'POST',
+      headers: { 'x-streamtipp': '1', 'content-type': 'application/json' },
+      body: JSON.stringify({ pinterestProfil: $('pin_profil').value.trim() }),
+    });
+    const e = await r.json();
+    if (!r.ok || e.fehler) throw new Error(e.fehler || 'HTTP ' + r.status);
+    $('pin_profil').value = e.geaendert.pinterestProfil;
+    $('pin_profil_status').textContent = e.geaendert.pinterestProfil ? 'gespeichert' : 'entfernt';
+    laden();
+  } catch (err) {
+    $('pin_profil_status').textContent = 'Fehler: ' + err.message;
+  } finally {
+    knopf.disabled = laeuft;
   }
 };
 
