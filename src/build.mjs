@@ -490,20 +490,41 @@ function affiliateHosts() {
   }
 }
 
+// Besucherzählung über Cloudflare Web Analytics. Nur aktiv, wenn in
+// config/site.json ein Site-Token steht. Ohne Token lädt die Seite kein
+// einziges fremdes Skript. Das Skript setzt keine Cookies und nutzt keinen
+// Speicher im Browser.
+const BEACON = 'https://static.cloudflareinsights.com/beacon.min.js';
+
+function zaehlerToken(site) {
+  const t = String(site.analytics?.cloudflare || '');
+  return /^[a-f0-9]{32}$/i.test(t) ? t : '';
+}
+
+function zaehler(site) {
+  const t = zaehlerToken(site);
+  return t ? `<script defer src="${BEACON}" data-cf-beacon='{"token":"${t}"}'></script>\n` : '';
+}
+
 // Content-Security-Policy als Meta-Tag, weil GitHub Pages keine eigenen
 // Kopfzeilen erlaubt. Skripte laufen nur, wenn ihr Inhalt exakt dem beim Bauen
 // berechneten Hash entspricht. Rutscht trotz aller Maskierung irgendwann Code
 // in einen Artikel, fuehrt der Browser ihn nicht aus. Styles bleiben inline
 // erlaubt, weil das ganze CSS im Kopf steht und keine Daten preisgeben kann.
 function mitCsp(html) {
-  const hashes = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
-    .map((m) => `'sha256-${crypto.createHash('sha256').update(m[1], 'utf8').digest('base64')}'`);
+  // Nur eingebettete Skripte bekommen einen Hash. Das externe Zählskript wird
+  // über seine Adresse freigegeben, und nur dann, wenn es auch eingebaut ist.
+  const hashes = [...html.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script>/g)]
+    .filter((m) => !/\ssrc=/.test(m[1] || ''))
+    .map((m) => `'sha256-${crypto.createHash('sha256').update(m[2], 'utf8').digest('base64')}'`);
+  const mitZaehler = html.includes(`src="${BEACON}"`);
+  const skripte = [...new Set(hashes), ...(mitZaehler ? ['https://static.cloudflareinsights.com'] : [])];
   const csp = [
     "default-src 'self'",
-    `script-src ${[...new Set(hashes)].join(' ') || "'none'"}`,
+    `script-src ${skripte.join(' ') || "'none'"}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
-    "connect-src 'self'",
+    `connect-src 'self'${mitZaehler ? ' https://cloudflareinsights.com' : ''}`,
     "font-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
@@ -588,7 +609,7 @@ ${body}
 </div></footer>
 <script>${THEMA_JS}</script>
 ${script ? `<script>${script}</script>` : ''}
-</body>
+${zaehler(site)}</body>
 </html>`);
 }
 
@@ -993,7 +1014,13 @@ export async function build() {
     // Die Mailadresse als Zeichenreferenzen: Browser zeigen sie normal an,
     // einfache Adresssammler für Spam und Phishing finden sie nicht.
     const verschleiert = [...String(site.email || '')].map((c) => `&#${c.codePointAt(0)};`).join('');
-    let html = fs.existsSync(src) ? fs.readFileSync(src, 'utf8').replace(/<!--[\s\S]*?-->/g, '').trim() : '<p>Fehlt.</p>';
+    // Die Datenschutzerklärung hat zwei Fassungen, je nachdem ob der Zähler
+    // aktiv ist. So stimmt der Text immer mit dem überein, was die Seite tut.
+    const mitZaehler = Boolean(zaehlerToken(site));
+    let html = fs.existsSync(src) ? fs.readFileSync(src, 'utf8') : '<p>Fehlt.</p>';
+    html = html.replace(/<!-- nur-(mit|ohne)-zaehler -->([\s\S]*?)<!-- \/nur-\1-zaehler -->/g,
+      (_m, art, inhalt) => ((art === 'mit') === mitZaehler ? inhalt : ''));
+    html = html.replace(/<!--[\s\S]*?-->/g, '').trim();
     if (site.email) html = html.split(site.email).join(verschleiert);
     fs.writeFileSync(path.join(paths.dist, file), legalPage(site, defs, title, file, html));
   }

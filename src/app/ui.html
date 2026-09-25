@@ -56,9 +56,38 @@ button.bestaetigen{background:var(--warn)}
 input[type=number]{font:inherit;width:5.5rem;padding:.58rem .7rem;border-radius:9px;
   background:var(--bg);border:1px solid var(--linie);color:var(--text);text-align:center}
 input[type=number]:focus{outline:2px solid var(--akzent);outline-offset:1px}
-input[type=url]{font:inherit;width:100%;min-width:0;padding:.58rem .7rem;border-radius:9px;
+input[type=url],input[type=password]{font:inherit;width:100%;min-width:0;padding:.58rem .7rem;border-radius:9px;
   background:var(--bg);border:1px solid var(--linie);color:var(--text)}
-input[type=url]:focus{outline:2px solid var(--akzent);outline-offset:1px}
+input[type=url]:focus,input[type=password]:focus{outline:2px solid var(--akzent);outline-offset:1px}
+
+/* Besucher: breite Karte mit Kacheln, Tagesdiagramm und drei Listen */
+.breit{grid-column:1/-1}
+.kopfzeile{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.stand{font-size:.78rem;color:var(--gedaempft)}
+.kacheln{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.kachel .zahl{font-size:1.75rem}
+.diagramm{position:relative;margin-top:1.4rem}
+.diagramm-kopf{display:flex;justify-content:space-between;font-size:.78rem;color:var(--gedaempft);margin-bottom:.4rem}
+.saeulen{display:flex;align-items:flex-end;gap:2px;height:130px;border-bottom:1px solid var(--linie)}
+.saeule{flex:1 1 0;min-width:0;height:100%;display:flex;align-items:flex-end;justify-content:center;outline:none}
+.saeule i{display:block;width:100%;max-width:24px;background:var(--akzent);border-radius:4px 4px 0 0}
+.saeule:hover i,.saeule:focus-visible i{filter:brightness(1.18)}
+.saeule:focus-visible{box-shadow:inset 0 -2px 0 var(--akzent)}
+.achse{display:flex;justify-content:space-between;font-size:.75rem;color:var(--gedaempft);margin-top:.35rem}
+.tipp{position:absolute;pointer-events:none;background:var(--karte2);border:1px solid var(--linie);border-radius:8px;
+  padding:.4rem .6rem;font-size:.8rem;line-height:1.35;white-space:nowrap;transform:translate(-50%,calc(-100% - 8px));z-index:2}
+.tipp b{font-variant-numeric:tabular-nums}
+.listen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.6rem;margin-top:1.4rem}
+.listen h3{font-size:.8rem;color:var(--gedaempft);font-weight:600;margin:0 0 .3rem}
+.listen .reihe span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:860px){.kacheln,.listen{grid-template-columns:minmax(0,1fr)}}
+.schritte{margin:.6rem 0 1rem;padding-left:1.2rem;font-size:.9rem;line-height:1.6}
+.schritte code{background:var(--karte2);padding:.05rem .35rem;border-radius:5px}
+details.tabelle{margin-top:.9rem;font-size:.85rem}
+details.tabelle summary{cursor:pointer;color:var(--gedaempft)}
+details.tabelle table{border-collapse:collapse;margin-top:.5rem;width:100%;max-width:420px}
+details.tabelle td,details.tabelle th{padding:.2rem .6rem .2rem 0;text-align:left;border-bottom:1px solid var(--linie);font-variant-numeric:tabular-nums}
+.meldung-warn{background:var(--karte2);border-left:3px solid var(--warn);padding:.6rem .8rem;border-radius:6px;font-size:.88rem;margin-bottom:1rem}
 a.knopf{font-weight:600;color:#1b1524;background:var(--akzent);border-radius:9px;padding:.62rem 1.15rem;text-decoration:none}
 a.knopf:hover{filter:brightness(1.08)}
 .profil{margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--linie)}
@@ -147,6 +176,14 @@ footer{margin-top:1.6rem;color:var(--gedaempft);font-size:.8rem;text-align:cente
     <div id="protokoll" aria-live="polite"></div>
   </section>
 
+  <section class="karte breit">
+    <div class="kopfzeile">
+      <h2>Besucher</h2>
+      <span class="stand" id="b_stand"></span>
+    </div>
+    <div id="b_inhalt"><p class="leer">Lade Besucherzahlen …</p></div>
+  </section>
+
   <section class="karte">
     <h2>Rhythmus</h2>
     <label class="feld">
@@ -199,7 +236,7 @@ footer{margin-top:1.6rem;color:var(--gedaempft);font-size:.8rem;text-align:cente
   </section>
 
   <section class="karte">
-    <h2>Besucher und Klicks</h2>
+    <h2>Google-Suche</h2>
     <div id="m_inhalt"></div>
   </section>
 
@@ -649,11 +686,204 @@ $('plus5').onclick = () => { $('anzahl').value = 5; schaetzen(); erzeugen(5); };
 $('plus10').onclick = () => { $('anzahl').value = 10; schaetzen(); erzeugen(10); };
 $('starten').onclick = () => erzeugen(Math.max(1, Math.min(50, Number($('anzahl').value) || 1)));
 $('anzahl').oninput = schaetzen;
-$('neuladen').onclick = () => { laden(); schaetzen(); };
+$('neuladen').onclick = () => { laden(); schaetzen(); besucherLaden(true); };
+
+// ---------------------------------------------------------------------------
+// Besucher (Cloudflare Web Analytics)
+// ---------------------------------------------------------------------------
+
+const tagKurz = (iso) => new Date(iso + 'T00:00:00Z').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+const tagLang = (iso) => new Date(iso + 'T00:00:00Z').toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+
+function kachel(titel, b) {
+  return '<div class="kachel"><div class="unter" style="margin:0 0 .2rem">' + titel + '</div>'
+    + '<div class="zahl">' + zahl(b.besuche) + '<small>Besuche</small></div>'
+    + '<div class="unter">' + zahl(b.aufrufe) + ' Seitenaufrufe</div></div>';
+}
+
+// Balkenliste: Name links, Wert rechts, dünner Balken darunter. Die Breite
+// bezieht sich auf den größten Wert der Liste.
+function liste(titel, eintraege, wert, einheit) {
+  if (!eintraege.length) return '<h3>' + titel + '</h3><p class="leer">noch keine Daten</p>';
+  const max = Math.max(1, ...eintraege.map(wert));
+  return '<h3>' + titel + '</h3>' + eintraege.map((e) =>
+    '<div class="reihe"><span title="' + esc(e.titel || e.name) + '">' + esc(e.titel || e.name) + '</span><span>' + zahl(wert(e)) + (einheit ? ' ' + einheit : '') + '</span></div>'
+    + '<div class="balken" style="margin:-.1rem 0 .35rem"><i style="width:' + Math.round(wert(e) / max * 100) + '%"></i></div>').join('');
+}
+
+function verbindenFormular(meldung) {
+  return '<p style="margin:0 0 .4rem">Hier siehst du, wie viele Menschen die Seite besuchen, woher sie kommen und was sie lesen. '
+    + 'Das läuft kostenlos über Cloudflare Web Analytics, ohne Cookies und ohne Cookie-Banner.</p>'
+    + '<ol class="schritte">'
+    + '<li>Kostenloses Konto anlegen: <a href="https://dash.cloudflare.com/sign-up" target="_blank" rel="noopener noreferrer">dash.cloudflare.com/sign-up</a></li>'
+    + '<li>Im Menü links <b>Web Analytics</b> öffnen, <b>Add a site</b> wählen und <code>' + esc(letzterStatus ? new URL(letzterStatus.site.adresse).host : 'streamtipp.github.io') + '</code> eintragen. '
+    + 'Den angezeigten Code nicht selbst einbauen, das erledigt die App.</li>'
+    + '<li>API-Token erstellen: <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer">dash.cloudflare.com/profile/api-tokens</a>, '
+    + '<b>Create Token</b>, ganz unten <b>Custom token</b>. Zwei Berechtigungen, beide nur lesend: '
+    + '<b>Account · Account Analytics · Read</b> und <b>Account · Account Settings · Read</b>.</li>'
+    + '<li>Den Token kopieren, hier einfügen und auf <b>Verbinden</b> klicken.</li>'
+    + '</ol>'
+    + '<div class="steuerung"><div style="flex:1 1 260px"><input type="password" id="b_token" maxlength="100" placeholder="Cloudflare-API-Token" autocomplete="off" spellcheck="false"></div>'
+    + '<button id="b_verbinden" data-aktion>Verbinden</button></div>'
+    + '<p class="hinweis" id="b_meldung">' + (meldung ? esc(meldung) : 'Der Token bleibt auf diesem PC, außerhalb des Projektordners, und kann nur Zahlen lesen.') + '</p>';
+}
+
+function zaehlerHinweis(b) {
+  if (b.zaehlerOnline) return '';
+  const text = b.zaehlerEingetragen
+    ? (b.zaehlerOnline === null
+        ? 'Die Live-Seite war gerade nicht erreichbar, ob der Zähler dort schon läuft, ist unklar.'
+        : 'Der Zähler ist eingetragen, aber noch nicht online. Klick oben auf <b>Veröffentlichen</b>, dann beginnt die Zählung nach wenigen Minuten.')
+    : 'Auf der Seite ist noch kein Zähler eingebaut. Einmal trennen und neu verbinden.';
+  return '<div class="meldung-warn">' + text + '</div>';
+}
+
+function diagramm(tage) {
+  const max = Math.max(1, ...tage.map((t) => t.besuche));
+  const saeulen = tage.map((t, i) =>
+    '<div class="saeule" tabindex="0" data-i="' + i + '" aria-label="' + esc(tagLang(t.datum) + ': ' + t.besuche + ' Besuche, ' + t.aufrufe + ' Seitenaufrufe') + '">'
+    + '<i style="height:' + (t.besuche ? Math.max(2, t.besuche / max * 100) : 0) + '%"></i></div>').join('');
+  const zeilen = tage.slice().reverse().map((t) =>
+    '<tr><td>' + esc(tagLang(t.datum)) + '</td><td>' + zahl(t.besuche) + '</td><td>' + zahl(t.aufrufe) + '</td></tr>').join('');
+  return '<div class="diagramm" id="b_diagramm">'
+    + '<div class="diagramm-kopf"><span>Besuche pro Tag</span><span>höchster Tag: ' + zahl(max === 1 && !tage.some((t) => t.besuche) ? 0 : max) + '</span></div>'
+    + '<div class="saeulen">' + saeulen + '</div>'
+    + '<div class="achse"><span>' + tagKurz(tage[0].datum) + '</span><span>' + tagKurz(tage[Math.floor(tage.length / 2)].datum) + '</span><span>heute</span></div>'
+    + '<div class="tipp" id="b_tipp" hidden></div></div>'
+    + '<details class="tabelle"><summary>Als Tabelle</summary><table><thead><tr><th>Tag</th><th>Besuche</th><th>Aufrufe</th></tr></thead><tbody>' + zeilen + '</tbody></table></details>';
+}
+
+function tippAnbinden(tage) {
+  const box = $('b_diagramm');
+  const tipp = $('b_tipp');
+  if (!box) return;
+  const zeigen = (el) => {
+    const t = tage[Number(el.dataset.i)];
+    tipp.innerHTML = esc(tagLang(t.datum)) + '<br><b>' + zahl(t.besuche) + '</b> Besuche · ' + zahl(t.aufrufe) + ' Aufrufe';
+    const r = el.getBoundingClientRect();
+    const rb = box.getBoundingClientRect();
+    const balken = el.querySelector('i').getBoundingClientRect();
+    // Am Rand nicht aus der Karte ragen lassen
+    const x = Math.min(Math.max(r.left + r.width / 2 - rb.left, 70), rb.width - 70);
+    tipp.style.left = x + 'px';
+    tipp.style.top = (Math.min(balken.top, r.bottom - 4) - rb.top) + 'px';
+    tipp.hidden = false;
+  };
+  for (const el of box.querySelectorAll('.saeule')) {
+    el.onmouseenter = () => zeigen(el);
+    el.onfocus = () => zeigen(el);
+    el.onmouseleave = () => { tipp.hidden = true; };
+    el.onblur = () => { tipp.hidden = true; };
+  }
+}
+
+function besucherZeigen(b) {
+  const ziel = $('b_inhalt');
+  if (!b.verbunden) {
+    // Steht das Formular schon da, nicht neu zeichnen, sonst verschwindet ein
+    // gerade eingefügter Token.
+    if ($('b_token')) return;
+    $('b_stand').textContent = '';
+    ziel.innerHTML = verbindenFormular();
+    formularAnbinden();
+    return;
+  }
+  if (b.fehler) {
+    $('b_stand').textContent = '';
+    ziel.innerHTML = '<div class="meldung-warn">Cloudflare hat die Abfrage abgelehnt: ' + esc(b.fehler) + '</div>' + fussZeile();
+    fussAnbinden();
+    return;
+  }
+
+  $('b_stand').textContent = 'Stand ' + new Date(b.stand).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  const leer = !b.gesamt.aufrufe
+    ? '<p class="leer" style="margin:1rem 0 0">Noch keine Besuche erfasst. Nach dem Veröffentlichen dauert es einige Minuten, bis die ersten Aufrufe erscheinen. '
+      + 'Werbeblocker verhindern die Zählung, deine eigenen Besuche zählen also nur ohne Blocker.</p>'
+    : '';
+
+  ziel.innerHTML = zaehlerHinweis(b)
+    + '<div class="kacheln">' + kachel('Heute', b.heute) + kachel('Letzte 7 Tage', b.woche) + kachel('Letzte ' + b.zeitraumTage + ' Tage', b.gesamt) + '</div>'
+    + leer
+    + diagramm(b.tage)
+    + '<div class="listen">'
+    + '<div>' + liste('Meistgelesen', b.seiten.slice(0, 8), (e) => e.aufrufe, 'Aufr.') + '</div>'
+    + '<div>' + liste('Woher die Besucher kommen', b.quellen, (e) => e.besuche) + '</div>'
+    + '<div>' + liste('Geräte', b.geraete, (e) => e.besuche)
+    + '<div style="margin-top:1rem">' + liste('Länder', b.laender.slice(0, 5), (e) => e.besuche) + '</div></div>'
+    + '</div>'
+    + fussZeile();
+  tippAnbinden(b.tage);
+  fussAnbinden();
+}
+
+function fussZeile() {
+  return '<div class="steuerung" style="margin-top:1.2rem">'
+    + '<button class="zweit" id="b_neu">Aktualisieren</button>'
+    + '<a class="knopf" style="background:var(--karte2);color:var(--text);border:1px solid var(--linie)" href="https://dash.cloudflare.com/?to=/:account/web-analytics" target="_blank" rel="noopener noreferrer">Bei Cloudflare öffnen</a>'
+    + '<button class="zweit" id="b_trennen" data-aktion>Trennen</button>'
+    + '<span class="hinweis" style="margin:0">Zählt nur Besucher ohne Werbeblocker, die echten Zahlen liegen etwas höher.</span></div>';
+}
+
+let trennenZeit = null;
+function fussAnbinden() {
+  $('b_neu').onclick = () => besucherLaden(true);
+  $('b_trennen').onclick = async () => {
+    const knopf = $('b_trennen');
+    if (!trennenZeit) {
+      knopf.classList.add('bestaetigen');
+      knopf.textContent = 'Wirklich trennen?';
+      trennenZeit = setTimeout(() => { trennenZeit = null; knopf.classList.remove('bestaetigen'); knopf.textContent = 'Trennen'; }, 5000);
+      return;
+    }
+    clearTimeout(trennenZeit);
+    trennenZeit = null;
+    await fetch('/api/besucher-trennen', { method: 'POST', headers: { 'x-streamtipp': '1' } });
+    besucherLaden(true);
+  };
+}
+
+function formularAnbinden() {
+  const senden = async () => {
+    const token = $('b_token').value.trim();
+    if (!token) { $('b_meldung').textContent = 'Bitte zuerst den Token einfügen.'; return; }
+    $('b_verbinden').disabled = true;
+    $('b_meldung').textContent = 'Verbinde mit Cloudflare …';
+    try {
+      const r = await fetch('/api/besucher-verbinden', {
+        method: 'POST',
+        headers: { 'x-streamtipp': '1', 'content-type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      const e = await r.json();
+      if (!r.ok || e.fehler) throw new Error(e.fehler || 'HTTP ' + r.status);
+      $('b_token').value = '';
+      besucherLaden(true);
+      laden();
+    } catch (err) {
+      $('b_meldung').textContent = err.message;
+      $('b_verbinden').disabled = laeuft;
+    }
+  };
+  $('b_verbinden').onclick = senden;
+  $('b_token').onkeydown = (ev) => { if (ev.key === 'Enter') senden(); };
+}
+
+async function besucherLaden(neu) {
+  try {
+    const b = await (await fetch('/api/besucher' + (neu ? '?neu=1' : ''))).json();
+    // Nicht mitten ins Tippen hinein neu zeichnen
+    if (document.activeElement && document.activeElement.id === 'b_token') return;
+    besucherZeigen(b);
+  } catch {
+    $('b_inhalt').innerHTML = '<p class="leer">Besucherzahlen konnten nicht geladen werden.</p>';
+  }
+}
 
 laden();
 schaetzen();
+besucherLaden(false);
 setInterval(() => { if (!laeuft) laden(); }, 60000);
+setInterval(() => besucherLaden(false), 5 * 60000);
 </script>
 </body>
 </html>

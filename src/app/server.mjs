@@ -16,6 +16,7 @@ import { loadPerformance } from '../performance.mjs';
 import { loadWeights } from '../learn.mjs';
 import { offeneAenderungen, veroeffentlichen } from '../veroeffentlichen.mjs';
 import { pinterestUebersicht, pinterestExport, EXPORT_ORDNER, uhrzeitenFuer } from '../pinterest.mjs';
+import { besucher, verbinden, trennen } from '../analytics.mjs';
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4180);
@@ -52,6 +53,15 @@ function pinterestProfil(roh) {
   } catch {
     return '';
   }
+}
+
+function jsonKoerper(req) {
+  return new Promise((resolve, reject) => {
+    let text = '';
+    req.on('data', (d) => { text += d; if (text.length > 2000) reject(new Error('zu gross')); });
+    req.on('end', () => { try { resolve(JSON.parse(text || '{}')); } catch (err) { reject(err); } });
+    req.on('error', reject);
+  });
 }
 
 function jsonAntwort(res, daten, code = 200) {
@@ -291,7 +301,7 @@ function erzeugen(sende, anzahl) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
-  const aktionen = ['/api/erzeugen', '/api/veroeffentlichen', '/api/pinterest', '/api/pinterest-ordner', '/api/einstellungen'];
+  const aktionen = ['/api/erzeugen', '/api/veroeffentlichen', '/api/pinterest', '/api/pinterest-ordner', '/api/einstellungen', '/api/besucher-verbinden', '/api/besucher-trennen'];
   const istAktion = aktionen.includes(url.pathname);
 
   if (!vertrauenswuerdig(req, istAktion)) {
@@ -327,12 +337,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/einstellungen') {
       let eingabe = {};
       try {
-        eingabe = JSON.parse(await new Promise((resolve, reject) => {
-          let text = '';
-          req.on('data', (d) => { text += d; if (text.length > 2000) reject(new Error('zu gross')); });
-          req.on('end', () => resolve(text || '{}'));
-          req.on('error', reject);
-        }));
+        eingabe = await jsonKoerper(req);
       } catch {
         return jsonAntwort(res, { fehler: 'Ungültige Eingabe' }, 400);
       }
@@ -368,6 +373,21 @@ const server = http.createServer(async (req, res) => {
       }
       return jsonAntwort(res, { ok: true, geaendert });
     }
+
+    if (url.pathname === '/api/besucher') {
+      return jsonAntwort(res, await besucher({ neu: url.searchParams.get('neu') === '1' }));
+    }
+
+    // Der Token geht nur von hier an api.cloudflare.com und wird nie an die
+    // Oberfläche zurückgegeben.
+    if (url.pathname === '/api/besucher-verbinden') {
+      let eingabe;
+      try { eingabe = await jsonKoerper(req); } catch { return jsonAntwort(res, { fehler: 'Ungültige Eingabe' }, 400); }
+      const ergebnis = await verbinden(eingabe.token);
+      return jsonAntwort(res, ergebnis, ergebnis.fehler ? 400 : 200);
+    }
+
+    if (url.pathname === '/api/besucher-trennen') return jsonAntwort(res, trennen());
 
     if (url.pathname === '/api/pinterest') {
       return jsonAntwort(res, await pinterestExport({ trocken: url.searchParams.get('probe') === '1' }));

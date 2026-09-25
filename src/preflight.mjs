@@ -35,6 +35,15 @@ export function preflight({ strict = true } = {}) {
     }
   }
 
+  // Zähler an, aber die Datenschutzerklärung kennt ihn nicht: dann nicht
+  // veröffentlichen.
+  if (site.analytics?.cloudflare) {
+    const ds = path.join(paths.site, 'legal', 'datenschutz.html');
+    if (!fs.existsSync(ds) || !fs.readFileSync(ds, 'utf8').includes('<!-- nur-mit-zaehler -->')) {
+      problems.push('Besucherzähler ist eingetragen, aber site/legal/datenschutz.html hat keinen Abschnitt dazu');
+    }
+  }
+
   if (affiliate.amazon.enabled && PLACEHOLDER.test(affiliate.amazon.partnerTag)) {
     problems.push('config/affiliate.json: amazon.enabled ist true, aber partnerTag ist ein Platzhalter');
   }
