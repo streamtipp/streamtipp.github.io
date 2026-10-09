@@ -192,8 +192,8 @@
   "pin:wo-laeuft-gladiator-im-stream": "8f49bff575293c27",
   "pin:wo-laeuft-severance-im-stream": "a21d30e9934809f5",
   "pin:wo-laeuft-the-morning-show-im-stream": "201149a849b73f63",
-  "wo-laeuft-wer-weiss-denn-sowas-im-stream": "2e3f28f2acacb9fc",
-  "pin:wo-laeuft-wer-weiss-denn-sowas-im-stream": "3dd3a88814a1376d",
+  "wo-laeuft-wer-weiss-denn-sowas-im-stream": "58efafa7e4dbeba1",
+  "pin:wo-laeuft-wer-weiss-denn-sowas-im-stream": "86f37a489b7c056e",
   "wo-laufen-aktuelle-us-krimiserien-mit-vielen-staffeln-im-stream": "c8c91cdcedd16356",
   "pin:wo-laufen-aktuelle-us-krimiserien-mit-vielen-staffeln-im-stream": "f5c6c0761b4db18a",
   "pin:wo-laufen-tv-sender-im-livestream-wenn-sie-sich-neu-aufstellen": "9b9f478b44a2ab15",
@@ -380,5 +380,15 @@
   "wo-laeuft-breaking-bad-im-stream": "5a1354a4cecf790c",
   "pin:wo-laeuft-breaking-bad-im-stream": "afd42579d54fe356",
   "serien-die-jung-und-alt-gemeinsam-vor-den-fernseher-holen": "8191df3f9ab452ca",
-  "pin:serien-die-jung-und-alt-gemeinsam-vor-den-fernseher-holen": "b79061e2d9cb724e"
+  "pin:serien-die-jung-und-alt-gemeinsam-vor-den-fernseher-holen": "b79061e2d9cb724e",
+  "apple-tv-warum-weniger-serien-manchmal-mehr-sind": "8a8fd6e2293cea84",
+  "pin:apple-tv-warum-weniger-serien-manchmal-mehr-sind": "cd27da98094ee85f",
+  "fuenf-kriterien-fuer-die-wahl-der-richtigen-serie-am-abend": "820f415a2b9ce233",
+  "pin:fuenf-kriterien-fuer-die-wahl-der-richtigen-serie-am-abend": "3bfec18ad56f1ecd",
+  "zeitreise-filme-fuer-einen-heimkino-abend": "ef4afce33f557279",
+  "pin:zeitreise-filme-fuer-einen-heimkino-abend": "7b58ec3e01d8d1b0",
+  "krimi-serien-mit-starken-ermittlerinnen-fuer-den-serienabend": "a5363b5204d73d68",
+  "pin:krimi-serien-mit-starken-ermittlerinnen-fuer-den-serienabend": "2598abad19d9cd87",
+  "krimiserien-fuer-den-abend-wenn-law-order-keine-option-ist": "9ca61edfdd68487b",
+  "pin:krimiserien-fuer-den-abend-wenn-law-order-keine-option-ist": "f4a283d2c30b6ac3"
 }
