@@ -325,7 +325,108 @@
       "titel": "Kinoabend für Kinder zu Hause: Was du dafür brauchst",
       "form": "listicle",
       "kaufberatung": true
+    },
+    {
+      "titel": "ORF ON: So nutzt du die ORF-Mediathek richtig",
+      "form": "guide",
+      "land": "AT"
+    },
+    {
+      "titel": "Streamingdienste in Österreich: Welcher passt zu wem?",
+      "form": "vergleich",
+      "land": "AT"
+    },
+    {
+      "titel": "Österreichische Serien, die sich wirklich lohnen",
+      "form": "listicle",
+      "land": "AT"
+    },
+    {
+      "titel": "Österreichische Filme für einen Abend mit Schmäh",
+      "form": "listicle",
+      "land": "AT"
+    },
+    {
+      "titel": "Fernsehen ohne Kabel in Österreich: Antenne, Satellit oder Streaming",
+      "form": "guide",
+      "land": "AT"
+    },
+    {
+      "titel": "Österreichische Krimiserien im Stream finden",
+      "form": "guide",
+      "land": "AT"
+    },
+    {
+      "titel": "ORF ON oder Netflix: Was lohnt sich für Österreicher?",
+      "form": "vergleich",
+      "land": "AT"
+    },
+    {
+      "titel": "Austro-Klassiker, die man einmal gesehen haben sollte",
+      "form": "listicle",
+      "land": "AT"
+    },
+    {
+      "titel": "ARD-Mediathek: Die besten Filme ohne Abo finden",
+      "form": "guide",
+      "land": "DE"
+    },
+    {
+      "titel": "ZDF-Mediathek: So findest du gute Filme und Serien",
+      "form": "guide",
+      "land": "DE"
+    },
+    {
+      "titel": "Streamingdienste in Deutschland: Welcher passt zu wem?",
+      "form": "vergleich",
+      "land": "DE"
+    },
+    {
+      "titel": "Deutsche Serien, die international mithalten",
+      "form": "listicle",
+      "land": "DE"
+    },
+    {
+      "titel": "Fernsehen ohne Kabelanschluss in Deutschland: Die Möglichkeiten",
+      "form": "guide",
+      "land": "DE"
+    },
+    {
+      "titel": "Deutsche Filmklassiker für einen Abend auf dem Sofa",
+      "form": "listicle",
+      "land": "DE"
+    },
+    {
+      "titel": "Play Suisse: Schweizer Serien und Filme kostenlos streamen",
+      "form": "guide",
+      "land": "CH"
+    },
+    {
+      "titel": "Streamingdienste in der Schweiz: Welcher passt zu wem?",
+      "form": "vergleich",
+      "land": "CH"
+    },
+    {
+      "titel": "Schweizer Serien, die sich lohnen",
+      "form": "listicle",
+      "land": "CH"
+    },
+    {
+      "titel": "Schweizer Filme für einen gemütlichen Abend",
+      "form": "listicle",
+      "land": "CH"
+    },
+    {
+      "titel": "Fernsehen in der Schweiz ohne Kabel: Antenne, Satellit oder Streaming",
+      "form": "guide",
+      "land": "CH"
+    },
+    {
+      "titel": "Play SRF: Was du in der Mediathek findest",
+      "form": "guide",
+      "land": "CH"
     }
   ],
-  "kaufberatungHinweis": "Dies ist eine Kaufberatung. Erkläre, worauf es beim Kauf ankommt, welche Fehlkäufe häufig sind und für wen welche Lösung passt. Nenne keine konkreten Modelle, keine Preise, keine Messwerte und keine Testergebnisse. Nenne die Geräte beim üblichen Namen, etwa Beamer, Soundbar, AV-Receiver oder Streaming-Stick."
+  "kaufberatungHinweis": "Dies ist eine Kaufberatung. Erkläre, worauf es beim Kauf ankommt, welche Fehlkäufe häufig sind und für wen welche Lösung passt. Nenne keine konkreten Modelle, keine Preise, keine Messwerte und keine Testergebnisse. Nenne die Geräte beim üblichen Namen, etwa Beamer, Soundbar, AV-Receiver oder Streaming-Stick.",
+  "landHinweis": "Der Beitrag richtet sich an Leserinnen und Leser in {land}. Nenne nur Sender, Mediatheken und Streamingdienste, von denen du sicher weißt, dass es sie dort gibt und dass sie dort verfügbar sind. Keine Preise, keine Sendezeiten, keine Zahlen zu Katalogen oder Nutzern. Wenn du bei einem Angebot unsicher bist, lass es weg, statt zu raten. Bei Filmen und Serien aus {land} nur Titel nennen, bei denen du dir bei Regie, Hauptdarstellern und Handlung wirklich sicher bist. Lieber drei sichere Titel als fünf, bei denen einer falsch beschrieben ist. Nenne Regie und Darsteller nur, wenn du sie sicher weißt."
 }

@@ -1,5 +1,5 @@
 {
-  "hinweis": "Sammelseiten unter /thema/<slug>/. Beitraege werden von Hand zugeordnet, damit nichts Unpassendes auf der Seite landet. ab und bis (MM-TT) steuern, wann die Seite auf der Startseite beworben wird; erreichbar ist sie immer. farbe ist der Index der Plakatfarbe (0 Samtrot, 1 Pflaume, 2 Petrol, 3 Bernstein, 4 Nachtblau, 5 Weinrot), symbol ein Name aus src/design.mjs.",
+  "hinweis": "Sammelseiten unter /thema/<slug>/. Beitraege werden von Hand zugeordnet, damit nichts Unpassendes auf der Seite landet. ab und bis (MM-TT) steuern, wann die Seite auf der Startseite beworben wird; erreichbar ist sie immer. farbe ist der Index der Plakatfarbe (0 Samtrot, 1 Pflaume, 2 Petrol, 3 Bernstein, 4 Nachtblau, 5 Weinrot), symbol ein Name aus src/design.mjs. Länderseiten haben zusätzlich \"land\" (AT, DE, CH): Sie sammeln alle Beiträge mit diesem Land automatisch, erscheinen auf der Startseite nur für Besucher aus diesem Land (erkannt an der Zeitzone des Browsers, nichts wird gespeichert) und erst ab \"mindestens\" Beiträgen.",
   "seiten": [
     {
       "slug": "halloween",
@@ -24,6 +24,65 @@
         "mystery-serien-aus-deutschland-wo-sie-im-stream-laufen",
         "sci-fi-oder-horror-auf-netflix-was-lohnt-sich-2026"
       ]
+    },
+    {
+      "slug": "oesterreich",
+      "land": "AT",
+      "titel": "Streaming und Fernsehen in Österreich",
+      "kurztitel": "Österreich",
+      "untertitel": "Mediatheken, Sender und Serien, die du in Österreich schauen kannst.",
+      "einleitung": [
+        "Nicht alles, was in Deutschland läuft, gibt es auch in Österreich, und umgekehrt. Mediatheken, Sender und Streamingangebote unterscheiden sich je nach Land, manchmal auch innerhalb desselben Dienstes. Hier steht alles, was auf Streamtipp speziell für Österreich geschrieben ist.",
+        "Ein Tipp vorab: Wenn ein Titel in einer Mediathek nicht abspielbar ist, liegt das oft an den Länderrechten. Dann lohnt ein Blick in die Mediathek des heimischen Senders, viele Produktionen laufen dort ebenfalls."
+      ],
+      "farbe": 0,
+      "symbol": "play",
+      "mindestens": 3,
+      "beitraege": [
+        "mediatheken-in-deutschland-und-oesterreich-richtig-nutzen"
+      ]
+    },
+    {
+      "slug": "deutschland",
+      "land": "DE",
+      "titel": "Streaming und Fernsehen in Deutschland",
+      "kurztitel": "Deutschland",
+      "untertitel": "Mediatheken, Tatort, deutsche Serien und Streamingdienste für Deutschland.",
+      "einleitung": [
+        "ARD, ZDF und die privaten Sender stellen viel von ihrem Programm in Mediatheken, dazu kommen die großen Streamingdienste. Hier steht alles, was auf Streamtipp speziell für Zuschauer in Deutschland geschrieben ist, vom Tatort bis zur Frage, welches Abo sich lohnt.",
+        "Kataloge und Rechte wechseln oft. Prüfe vor dem Start kurz in der App, ob ein Titel gerade verfügbar ist."
+      ],
+      "farbe": 4,
+      "symbol": "play",
+      "mindestens": 3,
+      "beitraege": [
+        "ard-mediathek-oder-netflix-was-lohnt-sich-2026",
+        "zdf-mediathek-oder-netflix-deutsche-krimis-2026-im-vergleich",
+        "mediatheken-in-deutschland-und-oesterreich-richtig-nutzen",
+        "tatort-im-ersten-wo-laeuft-die-krimireihe-im-stream",
+        "wo-laeuft-der-tatort-wenn-man-ihn-verpasst-hat",
+        "tatort-oder-polizeiruf-110-was-lohnt-sich-2026",
+        "krimi-und-thriller-serien-fuer-den-abend-nach-dem-tatort",
+        "joyn-oder-sat-1-was-lohnt-sich-2026",
+        "wo-laeuft-sky-go-nach-dem-relaunch-in-deutschland",
+        "mystery-serien-aus-deutschland-wo-sie-im-stream-laufen",
+        "werwoelfe-im-stream-wo-der-ard-film-jetzt-laeuft"
+      ]
+    },
+    {
+      "slug": "schweiz",
+      "land": "CH",
+      "titel": "Streaming und Fernsehen in der Schweiz",
+      "kurztitel": "Schweiz",
+      "untertitel": "Schweizer Serien, Mediatheken und Streamingdienste für die Schweiz.",
+      "einleitung": [
+        "In der Schweiz sieht das Angebot an Mediatheken und Streamingdiensten anders aus als in Deutschland oder Österreich. Hier steht alles, was auf Streamtipp speziell für die Schweiz geschrieben ist.",
+        "Ein Tipp vorab: Wenn ein Titel nicht abspielbar ist, liegt das oft an den Länderrechten. Prüfe dann, ob der Titel bei einem Schweizer Anbieter läuft."
+      ],
+      "farbe": 5,
+      "symbol": "play",
+      "mindestens": 3,
+      "beitraege": []
     }
   ]
 }

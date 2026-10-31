@@ -174,6 +174,9 @@ a.chip:hover{background:var(--bg-3)}
 
 /* Sammlungen */
 .thema-band{margin:0 0 clamp(2.4rem,5vw,3.2rem)}
+.land-wahl{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 clamp(2.4rem,5vw,3.2rem);font-size:.9rem;color:var(--gedaempft)}
+.land-wahl a{padding:.32rem .8rem;border:1px solid var(--linie);border-radius:999px;text-decoration:none;color:var(--text)}
+.land-wahl a:hover{border-color:var(--akzent);color:var(--akzent)}
 .thema-band a{display:grid;grid-template-columns:4.6rem minmax(0,1fr) auto;gap:1.1rem;align-items:center;padding:.9rem 1.2rem .9rem .9rem;
   border-radius:16px;text-decoration:none;color:inherit;background:linear-gradient(100deg,var(--bg-2),var(--bg-3));border:1px solid var(--linie);box-shadow:var(--schatten)}
 .thema-band .cover.mini{aspect-ratio:1;border-radius:11px}
@@ -356,18 +359,24 @@ function themenLaden(posts) {
   return (cfg.seiten || []).map((t) => {
     const fehlend = (t.beitraege || []).filter((s) => !nachSlug.has(s));
     if (fehlend.length) log('thema', `${t.slug}: ${fehlend.length} zugeordnete Beiträge fehlen (${fehlend.join(', ')})`);
+    const vonHand = (t.beitraege || []).map((s) => nachSlug.get(s)).filter(Boolean);
+    // Länderseiten nehmen zusätzlich jeden Beitrag, den der Bot für dieses
+    // Land geschrieben hat, neueste zuerst.
+    const perLand = t.land ? posts.filter((p) => String(p.meta.land || '').toUpperCase() === t.land) : [];
+    const alle = [...new Map([...perLand, ...vonHand].map((p) => [p.slug, p])).values()];
+    if (t.land) alle.sort((a, b) => String(b.meta.date).localeCompare(String(a.meta.date)));
     return {
       ...t,
-      posts: (t.beitraege || []).map((s) => nachSlug.get(s)).filter(Boolean),
+      posts: alle,
       // Tut fuer Plakat, Vorschaubild und Pin so, als waere es ein Beitrag.
       pseudo: {
         slug: `thema-${t.slug}`,
         meta: { title: t.titel, description: t.untertitel, format: 'sammlung' },
         body: (t.einleitung || []).join(' '),
-        cover: { v: t.farbe, symbol: t.symbol, label: 'Sammlung' },
+        cover: { v: t.farbe, symbol: t.symbol, label: t.land ? t.kurztitel : 'Sammlung' },
       },
     };
-  }).filter((t) => t.posts.length);
+  }).filter((t) => t.posts.length >= (t.mindestens || 1));
 }
 
 function themenFuerBeitrag(slug) {
@@ -440,15 +449,52 @@ ${gruppen.map((g) => `<section class="reihe" aria-labelledby="gruppe-${g.d.id}">
 }
 
 // Werbeband auf der Startseite, solange das Zeitfenster eines Themas offen ist.
-function themaBaender(site, defs, prefix) {
-  return THEMEN.filter(themaAktiv).map((t) => `<section class="thema-band" aria-label="Sammlung ${escapeHtml(t.kurztitel || t.titel)}">
+function bandHtml(t, defs, prefix, { klein, attribute = '' }) {
+  return `<section class="thema-band"${attribute} aria-label="Sammlung ${escapeHtml(t.kurztitel || t.titel)}">
 <a href="${prefix}thema/${t.slug}/">
 ${coverHtml(t.pseudo, defs, 'mini')}
-<span class="thema-text"><small>Sammlung · ${t.posts.length} Tipps</small><strong>${escapeHtml(t.titel)}</strong><span>${escapeHtml(t.untertitel || '')}</span></span>
+<span class="thema-text"><small>${klein} · ${t.posts.length} Tipps</small><strong>${escapeHtml(t.titel)}</strong><span>${escapeHtml(t.untertitel || '')}</span></span>
 <span class="thema-pfeil" aria-hidden="true">→</span>
 </a>
-</section>`).join('\n');
+</section>`;
 }
+
+// Länder: Zuordnung über die Zeitzone des Browsers. Das braucht keine
+// IP-Ortung, kein Cookie und keinen Speicher, die Zeitzone bleibt im Browser.
+const LAND_ZONEN = { AT: ['Europe/Vienna'], DE: ['Europe/Berlin', 'Europe/Busingen'], CH: ['Europe/Zurich', 'Europe/Vaduz'] };
+const LAND_NAMEN = { AT: 'Österreich', DE: 'Deutschland', CH: 'der Schweiz' };
+
+function laenderSeiten() {
+  return THEMEN.filter((t) => t.land && LAND_ZONEN[t.land]);
+}
+
+function themaBaender(site, defs, prefix) {
+  const normale = THEMEN.filter((t) => !t.land && themaAktiv(t)).map((t) => bandHtml(t, defs, prefix, { klein: 'Sammlung' }));
+
+  // Das Band des eigenen Landes ist zunächst versteckt und wird vom Skript
+  // eingeblendet. Ohne Skript oder in anderen Ländern erscheint stattdessen
+  // eine schlichte Auswahl, sobald es mindestens zwei Länderseiten gibt.
+  const laender = laenderSeiten();
+  const baender = laender.map((t) => bandHtml(t, defs, prefix, {
+    klein: `Für dich in ${LAND_NAMEN[t.land]}`,
+    attribute: ` data-land="${t.land}" hidden`,
+  }));
+  const wahl = laender.length >= 2
+    ? `<nav class="land-wahl" aria-label="Streaming nach Land"><span>Streaming nach Land:</span>${laender.map((t) => `<a href="${prefix}thema/${t.slug}/">${escapeHtml(t.kurztitel)}</a>`).join('')}</nav>`
+    : '';
+  return [...baender, wahl, ...normale].filter(Boolean).join('\n');
+}
+
+const LAND_JS = String.raw`(function(){
+var z='';try{z=Intl.DateTimeFormat().resolvedOptions().timeZone||''}catch(e){}
+var zonen=__ZONEN__,land='';
+for(var k in zonen){if(zonen[k].indexOf(z)!==-1)land=k}
+if(!land)return;
+var band=document.querySelector('.thema-band[data-land="'+land+'"]');
+if(!band)return;
+band.hidden=false;
+var wahl=document.querySelector('.land-wahl');if(wahl)wahl.hidden=true;
+})();`;
 
 function lesezeit(body) {
   return Math.max(1, Math.round(body.split(/\s+/).length / 200));
@@ -543,7 +589,7 @@ function bildFuer(site, slug) {
   return null;
 }
 
-function layout(site, defs, { title, description, canonical, body, jsonLd, prefix = '', aktuell = '', script = '', bild, bildAlt = '', ogTyp = 'website' }) {
+function layout(site, defs, { title, description, canonical, body, jsonLd, prefix = '', aktuell = '', script = '', bild, bildAlt = '', ogTyp = 'website', robots = 'index,follow,max-image-preview:large' }) {
   const start = prefix || './';
   // Seiten ohne eigenes Bild, etwa Startseite, Kategorien und Suche, zeigen
   // beim Teilen das Bild der Startseite.
@@ -581,7 +627,7 @@ function layout(site, defs, { title, description, canonical, body, jsonLd, prefi
 <meta property="og:locale" content="de_DE">
 <meta name="twitter:title" content="${escapeHtml(title)}">
 <meta name="twitter:description" content="${escapeHtml(description)}">
-${bildMeta}<meta name="robots" content="index,follow,max-image-preview:large">
+${bildMeta}<meta name="robots" content="${robots}">
 <link rel="icon" href="${prefix}favicon.svg" type="image/svg+xml">
 <link rel="icon" href="${prefix}favicon-48.png" sizes="48x48" type="image/png">
 <link rel="apple-touch-icon" href="${prefix}apple-touch-icon.png">
@@ -768,6 +814,9 @@ ${programm.length ? `<aside class="programm" aria-labelledby="programm">
     canonical: `${site.baseUrl}/`,
     aktuell: 'start',
     body: `${intro}\n${buehne}\n${themaBaender(site, defs, '')}\n${reihen}`,
+    script: laenderSeiten().length
+      ? LAND_JS.replace('__ZONEN__', () => sicheresJson(Object.fromEntries(laenderSeiten().map((t) => [t.land, LAND_ZONEN[t.land]]))))
+      : '',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
@@ -842,11 +891,15 @@ function searchIndex(site, defs, posts) {
   }));
 }
 
+// Impressum und Datenschutz sind für Besucher jederzeit erreichbar, wie das
+// Gesetz es verlangt, tauchen aber nicht in Suchergebnissen auf. Wer nach dem
+// Namen oder der Anschrift sucht, soll nicht auf dieser Seite landen.
 function legalPage(site, defs, title, slug, html) {
   return layout(site, defs, {
     title: `${title} - ${site.title}`,
     description: `${title} von ${site.title}`,
     canonical: `${site.baseUrl}/${slug}`,
+    robots: 'noindex,noarchive,nosnippet',
     body: `<header class="seitenkopf"><h1>${title}</h1></header>\n<div class="prosa">${html}</div>`,
   });
 }
@@ -884,10 +937,22 @@ const KI_CRAWLER = [
   'meta-externalagent', 'cohere-ai', 'DuckAssistBot', 'CCBot',
 ];
 
+// Impressum und Datenschutz enthalten Name und Anschrift. KI-Crawler und alle
+// unbekannten Bots lesen sie nicht. Google und Bing dürfen sie lesen, sonst
+// sehen sie das "noindex" darin nicht und könnten die Adresse doch aufnehmen.
+const RECHTSSEITEN = ['/impressum.html', '/datenschutz.html'];
+
 function robots(site) {
-  const bloecke = KI_CRAWLER.map((name) => `User-agent: ${name}\nAllow: /`).join('\n\n');
+  const sperre = RECHTSSEITEN.map((p) => `Disallow: ${p}`).join('\n');
+  const bloecke = KI_CRAWLER.map((name) => `User-agent: ${name}\n${sperre}\nAllow: /`).join('\n\n');
   return `# Alle Crawler sind willkommen, auch die von KI-Assistenten.
+# Ausnahme: die Rechtsseiten mit Name und Anschrift.
+User-agent: Googlebot
+User-agent: Bingbot
+Allow: /
+
 User-agent: *
+${sperre}
 Allow: /
 
 ${bloecke}
@@ -931,8 +996,6 @@ ${sammlungen}${kapitel}
 ## Weiteres
 
 - [Suche](${site.baseUrl}/suche/): alle Beiträge durchsuchen
-- [Impressum](${site.baseUrl}/impressum.html)
-- [Datenschutz](${site.baseUrl}/datenschutz.html)
 `;
 }
 
@@ -1020,6 +1083,10 @@ export async function build() {
     let html = fs.existsSync(src) ? fs.readFileSync(src, 'utf8') : '<p>Fehlt.</p>';
     html = html.replace(/<!-- nur-(mit|ohne)-zaehler -->([\s\S]*?)<!-- \/nur-\1-zaehler -->/g,
       (_m, art, inhalt) => ((art === 'mit') === mitZaehler ? inhalt : ''));
+    // Anschrift als Zeichenreferenzen, wie schon die Mailadresse. Nur der Text,
+    // die Zeilenumbrüche bleiben echte Tags.
+    html = html.replace(/<!-- anschrift[\s\S]*?-->([\s\S]*?)<!-- \/anschrift -->/g, (_m, teil) =>
+      teil.replace(/(<[^>]*>)|([^<]+)/g, (_t, tag, text) => tag || [...text].map((c) => (/\s/.test(c) ? c : `&#${c.codePointAt(0)};`)).join('')));
     html = html.replace(/<!--[\s\S]*?-->/g, '').trim();
     if (site.email) html = html.split(site.email).join(verschleiert);
     fs.writeFileSync(path.join(paths.dist, file), legalPage(site, defs, title, file, html));

@@ -162,6 +162,8 @@ export async function writeArticle(topic) {
     slug,
     source: topic.origin,
     format: topic.format.id,
+    // Ordnet den Beitrag der passenden Länderseite zu
+    ...(/^(AT|DE|CH)$/.test(topic.land || '') ? { land: topic.land } : {}),
   };
 
   fs.mkdirSync(paths.posts, { recursive: true });

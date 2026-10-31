@@ -96,14 +96,20 @@ function planThemen(formats) {
   // Kaufberatungen bekommen eine eigene Schreibregel mit und kommen vor den
   // übrigen zeitlosen Themen dran: Nur sie führen Leser zu Produkten, und nur
   // darüber verdient die Seite etwas.
-  const hinweis = (e) => (e.kaufberatung ? plan.kaufberatungHinweis : undefined);
+  // Länderthemen ebenso: Für Österreich und die Schweiz gibt es deutlich
+  // weniger Konkurrenz in der Suche als für Deutschland.
+  const LAENDER = { AT: 'Österreich', DE: 'Deutschland', CH: 'der Schweiz' };
+  const hinweis = (e) => [
+    e.kaufberatung ? plan.kaufberatungHinweis : '',
+    e.land && LAENDER[e.land] ? String(plan.landHinweis || '').replaceAll('{land}', LAENDER[e.land]) : '',
+  ].filter(Boolean).join('\n') || undefined;
 
   const saisonal = (plan.saisonal || [])
     .filter((e) => imFenster(e, heute))
-    .map((e) => ({ hook: e.titel, origin: 'plan', anlass: e.anlass, hinweis: hinweis(e), format: formOder(e.form) }));
+    .map((e) => ({ hook: e.titel, origin: 'plan', anlass: e.anlass, land: e.land, hinweis: hinweis(e), format: formOder(e.form) }));
 
   const evergreen = (plan.evergreen || [])
-    .map((e) => ({ hook: e.titel, origin: 'plan', hinweis: hinweis(e), format: formOder(e.form) }));
+    .map((e) => ({ hook: e.titel, origin: 'plan', land: e.land, hinweis: hinweis(e), format: formOder(e.form) }));
 
   return [...saisonal, ...shuffle(evergreen.filter((e) => e.hinweis)), ...shuffle(evergreen.filter((e) => !e.hinweis))];
 }
