@@ -72,12 +72,18 @@ async function main() {
     const { writeArticle } = await import('./write.mjs');
     const { loadState, saveState } = await import('./util.mjs');
 
+    // Ohne gültige Anmeldung scheitert jeder Artikel. Dann gleich abbrechen,
+    // mit einer Meldung, die im Protokoll und in der App auffällt.
+    const { detectProvider, claudeAngemeldet, anmeldungsFehler } = await import('./llm.mjs');
+    if (detectProvider() === 'claude-cli' && (await claudeAngemeldet()) === false) throw anmeldungsFehler();
+
     const topics = await discover(proTag);
     const state = loadState();
     state.usedTopics ||= [];
     state.published ||= [];
 
     let n = 0;
+    let abbruch = null;
     for (const topic of topics) {
       try {
         const post = await writeArticle(topic);
@@ -86,11 +92,14 @@ async function main() {
         journal.push(`       + ${post.slug}`);
         n++;
       } catch (err) {
+        if (err.anmeldung) { abbruch = err; break; }
         journal.push(`       ! "${topic.hook}": ${err.message}`);
       }
     }
     state.lastRun = new Date().toISOString();
     saveState(state);
+    if (abbruch && !n) throw abbruch;
+    if (abbruch) journal.push(`       ! ${abbruch.message}`);
     return n;
   }, journal);
 

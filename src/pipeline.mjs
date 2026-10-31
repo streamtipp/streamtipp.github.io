@@ -73,6 +73,7 @@ async function main() {
       // Ein misslungener Artikel darf den Lauf nicht abbrechen. Das Thema
       // bleibt unverbraucht und kann beim naechsten Mal erneut drankommen.
       log('write', `Fehlgeschlagen bei "${topic.hook}": ${err.message}`);
+      if (err.anmeldung) break;
     }
   }
 

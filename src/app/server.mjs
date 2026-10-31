@@ -11,7 +11,7 @@ import path from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { ROOT, paths, loadConfig, readPosts, log } from '../util.mjs';
-import { schaetzung, modellEinstellung } from '../llm.mjs';
+import { schaetzung, modellEinstellung, claudeAngemeldet, claudeBinaer } from '../llm.mjs';
 import { loadPerformance } from '../performance.mjs';
 import { loadWeights } from '../learn.mjs';
 import { offeneAenderungen, veroeffentlichen } from '../veroeffentlichen.mjs';
@@ -166,6 +166,15 @@ async function liveStatus(site) {
   }
 }
 
+// Anmeldestatus der Claude-CLI. Die Abfrage dauert ein, zwei Sekunden, deshalb
+// bei bestehender Anmeldung nur alle fünf Minuten neu. Fehlt sie, bei jedem
+// Abruf, damit die Warnung gleich nach dem Anmelden verschwindet.
+let anmeldung = { wert: null, zeit: 0 };
+async function claudeStatus() {
+  if (anmeldung.wert !== true || Date.now() - anmeldung.zeit > 5 * 60 * 1000) anmeldung = { wert: await claudeAngemeldet(), zeit: Date.now() };
+  return anmeldung.wert;
+}
+
 async function status() {
   const site = loadConfig('site.json');
   const niche = loadConfig('niche.json');
@@ -219,6 +228,7 @@ async function status() {
       : { vorhanden: false },
     gewichte,
     aufgabe: geplanteAufgabe(),
+    claudeAngemeldet: await claudeStatus(),
     live: await liveStatus(site),
     veroeffentlichung: offeneAenderungen(),
     pinterest: (() => {
@@ -301,7 +311,7 @@ function erzeugen(sende, anzahl) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
-  const aktionen = ['/api/erzeugen', '/api/veroeffentlichen', '/api/pinterest', '/api/pinterest-ordner', '/api/einstellungen', '/api/besucher-verbinden', '/api/besucher-trennen'];
+  const aktionen = ['/api/erzeugen', '/api/veroeffentlichen', '/api/pinterest', '/api/pinterest-ordner', '/api/einstellungen', '/api/besucher-verbinden', '/api/besucher-trennen', '/api/claude-anmelden'];
   const istAktion = aktionen.includes(url.pathname);
 
   if (!vertrauenswuerdig(req, istAktion)) {
@@ -388,6 +398,14 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (url.pathname === '/api/besucher-trennen') return jsonAntwort(res, trennen());
+
+    // Öffnet ein sichtbares Konsolenfenster mit "claude auth login". Die
+    // Anmeldung selbst erledigst du dort im Browser, die App sieht davon nichts.
+    if (url.pathname === '/api/claude-anmelden') {
+      spawn('cmd.exe', ['/k', claudeBinaer(), 'auth', 'login'], { detached: true, stdio: 'ignore', windowsHide: false }).unref();
+      anmeldung = { wert: null, zeit: 0 };
+      return jsonAntwort(res, { ok: true });
+    }
 
     if (url.pathname === '/api/pinterest') {
       return jsonAntwort(res, await pinterestExport({ trocken: url.searchParams.get('probe') === '1' }));

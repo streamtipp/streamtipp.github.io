@@ -62,6 +62,8 @@ input[type=url]:focus,input[type=password]:focus{outline:2px solid var(--akzent)
 
 /* Besucher: breite Karte mit Kacheln, Tagesdiagramm und drei Listen */
 .breit{grid-column:1/-1}
+.alarm{border-color:var(--schlecht);background:linear-gradient(180deg,#3a1a24,var(--karte))}
+.alarm h2{color:var(--schlecht)}
 .kopfzeile{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
 .stand{font-size:.78rem;color:var(--gedaempft)}
 .kacheln{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
@@ -140,6 +142,16 @@ footer{margin-top:1.6rem;color:var(--gedaempft);font-size:.8rem;text-align:cente
 </header>
 
 <div class="gitter">
+
+  <section class="karte breit alarm" id="anmeldung" hidden>
+    <h2>Claude ist nicht angemeldet</h2>
+    <p style="margin:0 0 .8rem">Die Anmeldung der Claude-CLI ist abgelaufen. Solange das so ist, schreibt der Bot keine Beiträge,
+      auch nicht der automatische Lauf um 8:00.</p>
+    <div class="steuerung">
+      <button id="anmelden">Bei Claude anmelden</button>
+      <span class="hinweis" id="anmelden_hinweis" style="margin:0">Öffnet ein Fenster. Dort im Browser anmelden, danach verschwindet dieser Hinweis von selbst.</span>
+    </div>
+  </section>
 
   <section class="karte aktion">
     <div class="bereiche">
@@ -544,6 +556,10 @@ async function laden() {
       + '</div>';
   } else $('p_inhalt').innerHTML = '<p class="leer">Kein Themenplan gefunden.</p>';
 
+  // Anmeldung der Claude-CLI. Nur bei sicherem "nein" warnen, nicht wenn die
+  // Abfrage selbst nicht klappte.
+  $('anmeldung').hidden = d.claudeAngemeldet !== false;
+
   // Automatik
   const t = d.aufgabe;
   $('t_inhalt').innerHTML = t.eingerichtet
@@ -687,6 +703,18 @@ $('plus10').onclick = () => { $('anzahl').value = 10; schaetzen(); erzeugen(10);
 $('starten').onclick = () => erzeugen(Math.max(1, Math.min(50, Number($('anzahl').value) || 1)));
 $('anzahl').oninput = schaetzen;
 $('neuladen').onclick = () => { laden(); schaetzen(); besucherLaden(true); };
+
+$('anmelden').onclick = async () => {
+  try {
+    await fetch('/api/claude-anmelden', { method: 'POST', headers: { 'x-streamtipp': '1' } });
+    $('anmelden_hinweis').textContent = 'Fenster geöffnet. Anmeldung im Browser abschließen, das Fenster danach schließen.';
+    // Ein paar Mal nachsehen, ob die Anmeldung durch ist
+    let versuche = 0;
+    const pruefen = setInterval(() => { laden(); if (++versuche >= 10 || $('anmeldung').hidden) clearInterval(pruefen); }, 15000);
+  } catch {
+    $('anmelden_hinweis').textContent = 'Das Fenster ließ sich nicht öffnen. Im Terminal "claude auth login" ausführen.';
+  }
+};
 
 // ---------------------------------------------------------------------------
 // Besucher (Cloudflare Web Analytics)

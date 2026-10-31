@@ -53,6 +53,39 @@ export function claudeBinaer() {
 // bewusst auf "anthropic" setzt, erzeugt eine Rechnung. Sonst laeuft alles
 // ueber die CLI und damit im bestehenden Abo.
 
+// Die Anmeldung der CLI läuft irgendwann ab. Vom 11. bis 31.10.2026 ist
+// deshalb drei Wochen lang kein Artikel entstanden, ohne dass es auffiel: Jeder
+// Lauf meldete nur "OAuth session expired" im Protokoll. Jetzt prüfen
+// Autopilot und App die Anmeldung ausdrücklich und zeigen sie an.
+const ANMELDUNG_FEHLT = /not logged in|please run \/login|failed to authenticate|oauth (session|token)[^"]*expired|could not be refreshed/i;
+
+export function anmeldungsFehler() {
+  const e = new Error('Claude ist nicht mehr angemeldet, die Anmeldung ist abgelaufen. In der App auf "Bei Claude anmelden" klicken oder im Terminal "claude auth login" ausführen.');
+  e.anmeldung = true;
+  return e;
+}
+
+// Fragt die CLI nach ihrem Anmeldestatus. Kostet kein Kontingent.
+// Ergebnis: true, false oder null, wenn sich das nicht feststellen lässt.
+export function claudeAngemeldet() {
+  return new Promise((resolve) => {
+    let aus = '';
+    let kind;
+    try {
+      kind = spawn(`"${claudeBinaer()}" auth status`, [], { shell: true, stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true });
+    } catch {
+      return resolve(null);
+    }
+    const timer = setTimeout(() => { try { kind.kill(); } catch { /* egal */ } resolve(null); }, 30000);
+    kind.stdout.on('data', (d) => { aus += d; });
+    kind.on('error', () => { clearTimeout(timer); resolve(null); });
+    kind.on('close', () => {
+      clearTimeout(timer);
+      try { resolve(Boolean(JSON.parse(aus.trim()).loggedIn)); } catch { resolve(null); }
+    });
+  });
+}
+
 export function detectProvider() {
   const explicit = process.env.CONTENTBOT_LLM;
   if (explicit) return explicit;
@@ -232,12 +265,7 @@ function viaCli(prompt) {
 
     child.on('close', (code) => {
       const detail = (err + out).trim();
-      if (/not logged in|please run \/login/i.test(detail)) {
-        return reject(new Error(
-          'Claude-CLI ist nicht angemeldet. Einmalig im Terminal "claude" starten, ' +
-          'dort /login eingeben und den Browser-Login abschliessen. Danach laeuft die Pipeline.'
-        ));
-      }
+      if (ANMELDUNG_FEHLT.test(detail)) return reject(anmeldungsFehler());
       if (/not recognized|nicht gefunden|command not found/i.test(detail)) {
         return reject(new Error(
           `Claude-CLI nicht aufrufbar unter "${bin}". Installieren mit ` +
