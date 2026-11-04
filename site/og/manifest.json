@@ -192,8 +192,8 @@
   "pin:wo-laeuft-gladiator-im-stream": "8f49bff575293c27",
   "pin:wo-laeuft-severance-im-stream": "a21d30e9934809f5",
   "pin:wo-laeuft-the-morning-show-im-stream": "201149a849b73f63",
-  "wo-laeuft-wer-weiss-denn-sowas-im-stream": "2e3f28f2acacb9fc",
-  "pin:wo-laeuft-wer-weiss-denn-sowas-im-stream": "3dd3a88814a1376d",
+  "wo-laeuft-wer-weiss-denn-sowas-im-stream": "58efafa7e4dbeba1",
+  "pin:wo-laeuft-wer-weiss-denn-sowas-im-stream": "86f37a489b7c056e",
   "wo-laufen-aktuelle-us-krimiserien-mit-vielen-staffeln-im-stream": "c8c91cdcedd16356",
   "pin:wo-laufen-aktuelle-us-krimiserien-mit-vielen-staffeln-im-stream": "f5c6c0761b4db18a",
   "pin:wo-laufen-tv-sender-im-livestream-wenn-sie-sich-neu-aufstellen": "9b9f478b44a2ab15",
@@ -414,5 +414,11 @@
   "fernsehen-ohne-kabel-in-oesterreich-antenne-sat-oder-streaming": "8930f277c583b12c",
   "pin:fernsehen-ohne-kabel-in-oesterreich-antenne-sat-oder-streaming": "4060d845da35e289",
   "play-srf-was-die-mediathek-der-schweiz-zu-bieten-hat": "89889047accc071d",
-  "pin:play-srf-was-die-mediathek-der-schweiz-zu-bieten-hat": "e6b32dc654b5d4f7"
+  "pin:play-srf-was-die-mediathek-der-schweiz-zu-bieten-hat": "e6b32dc654b5d4f7",
+  "ard-mediathek-filme-finden-ohne-streaming-abo": "cc8d21da3c31db4f",
+  "pin:ard-mediathek-filme-finden-ohne-streaming-abo": "226c937c24b05b2a",
+  "drei-deutsche-filmklassiker-fuer-einen-ruhigen-abend": "a858b931da3c2d69",
+  "pin:drei-deutsche-filmklassiker-fuer-einen-ruhigen-abend": "2ce8686db892f60a",
+  "netflix-disney-oder-sky-welcher-dienst-passt-in-der-schweiz": "0b1017bea3850810",
+  "pin:netflix-disney-oder-sky-welcher-dienst-passt-in-der-schweiz": "819e4eceae20c8a0"
 }
